@@ -1,0 +1,24 @@
+# logging
+logging:
+  level:
+    org.springframework: INFO
+    com.mkyong: INFO
+    com.zaxxer: DEBUG
+    root: ERROR
+
+
+spring:
+  datasource:
+    url: ${JDBC_DATABASE_URL}
+    username: ${JDBC_DATABASE_USERNAME}
+    password: ${JDBC_DATABASE_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+    # default connection pool
+    hikari:
+      connectionTimeout: 20000
+      maximumPoolSize: 5
+      poolName: HikariPoolZZZ
