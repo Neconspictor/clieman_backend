@@ -49,7 +49,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             String requestBody = new String(req.getInputStream().readAllBytes());
             UserController.LoginRequest loginRequest = objectMapper.readValue(requestBody, UserController.LoginRequest.class);
-            
+
             return this.getAuthenticationManager().authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.username,
@@ -95,8 +95,6 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         responseWriter.writeJSONErrors(List.of(INVALID_LOGIN), response);
-
-        super.unsuccessfulAuthentication(request, response, failed);
     }
 
 
