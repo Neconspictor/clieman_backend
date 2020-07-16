@@ -14,6 +14,8 @@ import javax.validation.constraints.*;
         uniqueConstraints={@UniqueConstraint(columnNames={"username"})})
 public class User {
 
+    public static final int MIN_PASSWORD_LENGTH = 8;
+
     /**
      *  Primary source for authentication and used to send emails to the user (e.g. during registration process).
      */
@@ -45,7 +47,7 @@ public class User {
     @NotNull
     @NotEmpty
     @Column(nullable = false)
-    @Size(max = RepositoryConfig.MAX_STRING_SIZE)
+    @Size(min = MIN_PASSWORD_LENGTH, max = RepositoryConfig.MAX_STRING_SIZE)
     private String password;
 
     /**
