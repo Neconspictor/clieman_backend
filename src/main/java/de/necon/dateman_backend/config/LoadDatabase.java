@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
@@ -17,9 +18,16 @@ public class LoadDatabase {
     @Autowired
     private PasswordEncoder encoder;
 
+    @Autowired
+    private Environment env;
+
     @Bean
     CommandLineRunner initDatabase(UserRepository repository) {
         return args -> {
+
+            //System.out.println(env.getProperty("DATEMAN_GMAIL_PASSWORD"));
+            //System.out.println(env.getProperty("DATEMAN_GMAIL_USERNAME"));
+
             log.info("Preloading " + repository.save(new User("pumuckl@muenchen.de", encoder.encode("r3dG0blin"), "Pumuckl")));
             log.info("Preloading " + repository.save(new User("schlomo@testimonial.de", encoder.encode("sleepAbitAndRest"), "Schlomo")));
             log.info("Preloading " + repository.save(new User("test@email.com", encoder.encode("pass"), "test")));

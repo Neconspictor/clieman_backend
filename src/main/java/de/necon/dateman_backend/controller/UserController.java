@@ -1,9 +1,12 @@
 package de.necon.dateman_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.necon.dateman_backend.email.EmailServiceImpl;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.util.ResponseWriter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +21,7 @@ public class UserController {
     private final UserRepository repository;
 
     private final ResponseWriter responseWriter;
+    private final EmailServiceImpl emailService;
 
    // @Resource(name="authenticationManager")
    // private AuthenticationManager authManager;
@@ -25,9 +29,17 @@ public class UserController {
     private final ObjectMapper objectMapper;
     private final PasswordEncoder encoder;
 
-    public UserController(UserRepository repository, ResponseWriter responseWriter, ObjectMapper objectMapper, PasswordEncoder encoder) {
+    @Autowired
+    private Environment env;
+
+    public UserController(UserRepository repository,
+                          ResponseWriter responseWriter,
+                          EmailServiceImpl emailService,
+                          ObjectMapper objectMapper,
+                          PasswordEncoder encoder) {
         this.repository = repository;
         this.responseWriter = responseWriter;
+        this.emailService = emailService;
         this.objectMapper = objectMapper;
         this.encoder = encoder;
     }
@@ -38,7 +50,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public User register(@RequestBody @Valid final User user, final HttpServletResponse response) throws IOException {
+    public RegisterResponse register(@RequestBody @Valid final User user, final HttpServletResponse response) throws IOException {
 
         List<String> errors = new ArrayList<>();
 
@@ -62,29 +74,41 @@ public class UserController {
             return null;
         }
 
-        return repository.saveAndFlush(user);
-    }
+        var savedUser = repository.saveAndFlush(user);
+        var responseMessage = new RegisterResponse(savedUser.getEmail(), savedUser.getUsername());
 
-    /*@RequestMapping(value = "/login", method = RequestMethod.GET)
-    public String login(@RequestParam("username") final String username, @RequestParam("password") final String password, final HttpServletRequest request) {
-        UsernamePasswordAuthenticationToken authReq =
-                new UsernamePasswordAuthenticationToken(username, password);
-        Authentication auth = authManager.authenticate(authReq);
-        SecurityContext sc = SecurityContextHolder.getContext();
-        sc.setAuthentication(auth);
-        //HttpSession session = request.getSession(true);
-        //session.setAttribute("SPRING_SECURITY_CONTEXT", sc);
-
-        if (auth.isAuthenticated()) {
-            return "You're logged in!";
-        } else {
-            return "You're NOT logged in!";
+        // if we have test environment we use a test email instead
+        String testEmail = env.getProperty("dateman.test.email");
+        String toEmail = savedUser.getEmail();
+        if (testEmail != null) {
+            toEmail = testEmail;
         }
 
-    }*/
+        // send verification email to user
+        emailService.sendSimpleMessage(toEmail,
+                "Registered new user",
+                "Registered the followng user: " + responseMessage.toString());
+
+        return responseMessage;
+    }
 
     public static class LoginRequest {
         public String username;
         public String password;
+    }
+
+    public static class RegisterResponse {
+        public final String email;
+        public final String username;
+
+        public RegisterResponse(String email, String username) {
+            this.email = email;
+            this.username = username;
+        }
+
+        @Override
+        public String toString() {
+            return "{" + "email: " + email + ", username: " + username + "}";
+        }
     }
 }

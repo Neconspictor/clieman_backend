@@ -105,6 +105,8 @@ public class User {
         StringBuilder builder = new StringBuilder();
         builder.append("{ email: ");
         builder.append(email);
+        builder.append(", username: ");
+        builder.append(username);
         builder.append(", password: ");
         builder.append(password);
         builder.append(" }");
