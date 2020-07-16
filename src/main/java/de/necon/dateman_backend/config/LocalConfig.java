@@ -1,7 +1,12 @@
 package de.necon.dateman_backend.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+
+import java.util.Locale;
 
 
 /**
@@ -13,4 +18,5 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource(
         ignoreResourceNotFound = true,
         value = {"file:application-local.properties", "file:application-local.yml"})
-public class LocalConfig {}
+public class LocalConfig {
+}

@@ -2,31 +2,12 @@ package de.necon.dateman_backend.repository;
 
 import de.necon.dateman_backend.model.User;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface UserRepository extends Repository<User, String> {
-
-    /**
-     * Saves a given user. Use the returned instance for further operations as the save operation might have changed the
-     * user instance completely.
-     *
-     * @param user must not be {@literal null}.
-     * @return the saved user; will never be {@literal null}.
-     * @throws IllegalArgumentException in case the given {@literal user} is {@literal null}.
-     */
-    <S extends User> S save(User user);
-
-    /**
-     * Saves all given users.
-     *
-     * @param users must not be {@literal null} nor must it contain {@literal null}.
-     * @return the saved users; will never be {@literal null}. The returned {@literal Iterable} will have the same size
-     *         as the {@literal Iterable} passed as an argument.
-     * @throws IllegalArgumentException in case the given {@link Iterable users} or one of its users is
-     *           {@literal null}.
-     */
-    <S extends User> Iterable<S> saveAll(Iterable<S> users);
+public interface UserRepository extends JpaRepository<User, String> {
 
     /**
      * Retrieves a user by its email.
@@ -64,12 +45,6 @@ public interface UserRepository extends Repository<User, String> {
      */
     boolean existsByUsername(String username);
 
-    /**
-     * Returns all users.
-     *
-     * @return all users
-     */
-    Iterable<User> findAll();
 
     /**
      * Returns all users with the given emails.
@@ -81,9 +56,9 @@ public interface UserRepository extends Repository<User, String> {
      * @param emails must not be {@literal null} nor contain any {@literal null} values.
      * @return guaranteed to be not {@literal null}. The size can be equal or less than the number of given
      *         {@literal emails}.
-     * @throws IllegalArgumentException in case the given {@link Iterable emails} or one of its items is {@literal null}.
+     * @throws IllegalArgumentException in case the given {@link List emails} or one of its items is {@literal null}.
      */
-    Iterable<User> findAllByEmailIn(Iterable<String> emails);
+    List<User> findAllByEmailIn(List<String> emails);
 
 
     /**
@@ -96,17 +71,9 @@ public interface UserRepository extends Repository<User, String> {
      * @param usernames must not be {@literal null} nor contain any {@literal null} values.
      * @return guaranteed to be not {@literal null}. The size can be equal or less than the number of given
      *         {@literal usernames}.
-     * @throws IllegalArgumentException in case the given {@link Iterable usernames} or one of its items is {@literal null}.
+     * @throws IllegalArgumentException in case the given {@link List usernames} or one of its items is {@literal null}.
      */
-    Iterable<User> findAllByUsernameIn(Iterable<String> usernames);
-
-
-    /**
-     * Returns the number of users available.
-     *
-     * @return the number of users.
-     */
-    long count();
+    List<User> findAllByUsernameIn(List<String> usernames);
 
     /**
      * Deletes the user with the given email.
@@ -123,25 +90,4 @@ public interface UserRepository extends Repository<User, String> {
      * @throws IllegalArgumentException in case the given {@literal email} is {@literal null}
      */
     void deleteByUsername(String username);
-
-    /**
-     * Deletes a given user.
-     *
-     * @param user must not be {@literal null}.
-     * @throws IllegalArgumentException in case the given user is {@literal null}.
-     */
-    void delete(User user);
-
-    /**
-     * Deletes the given users.
-     *
-     * @param users must not be {@literal null}. Must not contain {@literal null} elements.
-     * @throws IllegalArgumentException in case the given {@literal users} or one of its users is {@literal null}.
-     */
-    void deleteAll(Iterable<? extends User> users);
-
-    /**
-     * Deletes all users managed by the repository.
-     */
-    void deleteAll();
 }

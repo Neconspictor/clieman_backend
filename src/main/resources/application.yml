@@ -3,8 +3,8 @@ logging:
   level:
     org.springframework: INFO
     com.mkyong: INFO
-    com.zaxxer: DEBUG
-    root: ERROR
+    com.zaxxer: INFO
+    root: INFO
 
 
 spring:
@@ -22,3 +22,11 @@ spring:
       connectionTimeout: 20000
       maximumPoolSize: 5
       poolName: HikariPoolZZZ
+
+      security:
+        basic:
+          enabled: false
+
+server:
+  port : 8081
+
