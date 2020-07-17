@@ -5,7 +5,7 @@ import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.security.JWTAuthenticationFilter;
 import de.necon.dateman_backend.security.JWTAuthorizationFilter;
 import de.necon.dateman_backend.security.MyBasicAuthenticationEntryPoint;
-import de.necon.dateman_backend.user.UserDetailsServiceImpl;
+import de.necon.dateman_backend.service.UserDetailsServiceImpl;
 import de.necon.dateman_backend.util.ResponseWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

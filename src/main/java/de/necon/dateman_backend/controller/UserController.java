@@ -1,19 +1,22 @@
 package de.necon.dateman_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.necon.dateman_backend.email.EmailServiceImpl;
+import de.necon.dateman_backend.dto.RegisterUserDto;
+import de.necon.dateman_backend.exception.ServerErrorList;
+import de.necon.dateman_backend.service.OnRegistrationCompleteEvent;
+import de.necon.dateman_backend.service.EmailServiceImpl;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.service.UserService;
 import de.necon.dateman_backend.util.ResponseWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -22,6 +25,7 @@ public class UserController {
 
     private final ResponseWriter responseWriter;
     private final EmailServiceImpl emailService;
+    private final UserService userService;
 
    // @Resource(name="authenticationManager")
    // private AuthenticationManager authManager;
@@ -30,65 +34,43 @@ public class UserController {
     private final PasswordEncoder encoder;
 
     @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
     private Environment env;
 
     public UserController(UserRepository repository,
                           ResponseWriter responseWriter,
                           EmailServiceImpl emailService,
-                          ObjectMapper objectMapper,
+                          UserService userService, ObjectMapper objectMapper,
                           PasswordEncoder encoder) {
         this.repository = repository;
         this.responseWriter = responseWriter;
         this.emailService = emailService;
+        this.userService = userService;
         this.objectMapper = objectMapper;
         this.encoder = encoder;
     }
 
     @GetMapping("/users")
-    List<User> all() {
+    List<User> users() {
         return repository.findAll();
     }
 
     @PostMapping("/register")
-    public RegisterResponse register(@RequestBody @Valid final User user, final HttpServletResponse response) throws IOException {
+    public RegisterResponse register(@RequestBody RegisterUserDto userDto, final HttpServletResponse response) throws IOException {
 
-        List<String> errors = new ArrayList<>();
+        User savedUser = null;
+        try {
+            savedUser = userService.registerNewUserAccount(userDto);
+            eventPublisher.publishEvent(new OnRegistrationCompleteEvent(savedUser));
 
-        //check that the user isn't already registered
-        if (repository.findByEmail(user.getEmail()).isPresent()) {
-            errors.add(ServerMessageCodes.EMAIL_ALREADY_EXISTS);
+        } catch(ServerErrorList e) {
+            responseWriter.writeJSONErrors(e.getErrors(), response);
         }
 
-        if (repository.findByUsername(user.getUsername()).isPresent()) {
-            errors.add(ServerMessageCodes.USERNAME_ALREADY_EXISTS);
-        }
-
-        if (user.getPassword().length() < User.MIN_PASSWORD_LENGTH) {
-            errors.add(ServerMessageCodes.PASSWORD_TOO_SHORT);
-        } else {
-            user.setPassword(encoder.encode(user.getPassword()));
-        }
-
-        if (errors.size() > 0) {
-            responseWriter.writeJSONErrors(errors, response);
-            return null;
-        }
-
-        var savedUser = repository.saveAndFlush(user);
+        if (savedUser == null) return null;
         var responseMessage = new RegisterResponse(savedUser.getEmail(), savedUser.getUsername());
-
-        // if we have test environment we use a test email instead
-        String testEmail = env.getProperty("dateman.test.email");
-        String toEmail = savedUser.getEmail();
-        if (testEmail != null) {
-            toEmail = testEmail;
-        }
-
-        // send verification email to user
-        emailService.sendSimpleMessage(toEmail,
-                "Registered new user",
-                "Registered the following user: " + responseMessage.toString());
-
         return responseMessage;
     }
 

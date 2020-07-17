@@ -1,6 +1,11 @@
 package de.necon.dateman_backend.model;
 
 import de.necon.dateman_backend.config.RepositoryConfig;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.NaturalId;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.validator.constraints.UniqueElements;
+
 
 import javax.persistence.*;
 import javax.validation.Valid;
@@ -11,7 +16,7 @@ import javax.validation.constraints.*;
  */
 @Entity
 @Table( name = "tb_user", // NOTE: We have to use a different name since User is a reserved word in SQL
-        uniqueConstraints={@UniqueConstraint(columnNames={"username"})})
+        uniqueConstraints={@UniqueConstraint(columnNames={"email", "username"})})
 public class User {
 
     public static final int MIN_PASSWORD_LENGTH = 8;
@@ -20,20 +25,18 @@ public class User {
     /**
      *  Primary source for authentication and used to send emails to the user (e.g. during registration process).
      */
-    @Id
-    @NotNull
+    @NotNull(message = "Email must not be null.")
     @Email(regexp = ".+@.+\\..+", message = "Email for user must be valid.")
-    @Column(nullable = false)
+    @Column(nullable = false, unique=true)
+    @NaturalId
     @Size(max = RepositoryConfig.MAX_STRING_SIZE)
     private String email;
 
     @Column(columnDefinition="BOOLEAN DEFAULT false")
     private boolean enabled = false;
 
-    /**
-     * Id of the user. Is used for retrieving user information and data (clients, events, etc.).
-     */
-    /*@GeneratedValue(generator = "sequence-generator")
+    @Id
+    @GeneratedValue(generator = "sequence-generator")
     @GenericGenerator(
             name = "sequence-generator",
             strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
@@ -43,22 +46,24 @@ public class User {
                     @Parameter(name = "increment_size", value = "1")
             }
     )
-    private long id;*/
+    private Long id;
 
     /**
      * Password for authentication. Should be result of a cryptographic hash function.
      */
-    @NotNull
+    @NotNull(message="Password must not be null.")
     @NotEmpty
     @Column(nullable = false)
-    @Size(min = MIN_PASSWORD_LENGTH, max = RepositoryConfig.MAX_STRING_SIZE)
+    @Size(min = MIN_PASSWORD_LENGTH, max = RepositoryConfig.MAX_STRING_SIZE, message="Password too short")
+    @Size(max = RepositoryConfig.MAX_STRING_SIZE, message="Password too long")
     private String password;
 
     /**
      * Name of the user. Is optional and can be used as a replace of email when user authenticates.
      */
     @Size(max = RepositoryConfig.MAX_STRING_SIZE)
-    @Column(name="username")
+    @Column(name="username", unique=true)
+    @NaturalId
     private String username;
 
     public User() {
@@ -127,5 +132,16 @@ public class User {
         builder.append(" }");
 
         return builder.toString();
+    }
+
+    /**
+     * Id of the user. Is used for retrieving user information and data (clients, events, etc.).
+     */
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

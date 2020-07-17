@@ -1,7 +1,6 @@
-package de.necon.dateman_backend.user;
+package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.repository.UserRepository;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
