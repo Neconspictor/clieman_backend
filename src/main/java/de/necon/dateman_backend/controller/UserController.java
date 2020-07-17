@@ -87,7 +87,7 @@ public class UserController {
         // send verification email to user
         emailService.sendSimpleMessage(toEmail,
                 "Registered new user",
-                "Registered the followng user: " + responseMessage.toString());
+                "Registered the following user: " + responseMessage.toString());
 
         return responseMessage;
     }

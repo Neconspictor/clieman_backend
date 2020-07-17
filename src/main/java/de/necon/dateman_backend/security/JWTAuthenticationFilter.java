@@ -19,11 +19,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.crypto.Mac;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 import static de.necon.dateman_backend.config.SecurityConstants.*;
@@ -94,7 +92,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             throws IOException, ServletException {
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        responseWriter.writeJSONErrors(List.of(INVALID_LOGIN), response);
+        responseWriter.writeJSONErrors(List.of(INVALID_LOGIN, failed.getMessage()), response);
     }
 
 

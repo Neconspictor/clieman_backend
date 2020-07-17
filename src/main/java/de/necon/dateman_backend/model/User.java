@@ -16,6 +16,7 @@ public class User {
 
     public static final int MIN_PASSWORD_LENGTH = 8;
 
+
     /**
      *  Primary source for authentication and used to send emails to the user (e.g. during registration process).
      */
@@ -25,6 +26,9 @@ public class User {
     @Column(nullable = false)
     @Size(max = RepositoryConfig.MAX_STRING_SIZE)
     private String email;
+
+    @Column(columnDefinition="BOOLEAN DEFAULT false")
+    private boolean enabled = false;
 
     /**
      * Id of the user. Is used for retrieving user information and data (clients, events, etc.).
@@ -67,10 +71,11 @@ public class User {
      * @param password The password for authentication. Mustn't be null.
      * @param username The user's nick name. Can be null.
      */
-    public User(String email, String password, String username) {
+    public User(String email, String password, String username, Boolean enabled) {
         this.email = email;
         this.password = password;
         this.username = username;
+        this.enabled = enabled ? enabled : false;
     }
 
     public String getEmail() {
@@ -85,8 +90,16 @@ public class User {
         return this.username;
     }
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     /**
@@ -105,10 +118,12 @@ public class User {
         StringBuilder builder = new StringBuilder();
         builder.append("{ email: ");
         builder.append(email);
-        builder.append(", username: ");
-        builder.append(username);
+        builder.append("{ enabled: ");
+        builder.append(enabled);
         builder.append(", password: ");
         builder.append(password);
+        builder.append(", username: ");
+        builder.append(username);
         builder.append(" }");
 
         return builder.toString();
