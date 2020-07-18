@@ -63,7 +63,9 @@ public class UserServiceImpl implements UserService {
 
         if (errors.size() > 0) throw new ServerErrorList(errors);
 
-        var user = new User(userDto.getEmail(), userDto.getPassword(), userDto.getUsername(), false);
+        var user = new User(userDto.getEmail(),
+                encoder.encode(userDto.getPassword()),
+                userDto.getUsername(), false);
 
         return userRepository.saveAndFlush(user); // potentially throws validation exceptions handled by global exception handler
     }
