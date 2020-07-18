@@ -27,8 +27,8 @@ public class UserIntegrationTest {
     @Test
     public void testEmailNotNull() {
 
-        assertThatExceptionOfType(javax.persistence.PersistenceException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User(null, "password", "username"));
+        assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
+            testEntityManager.persistAndFlush(new User(null, "password", "username", true));
         });
     }
 
@@ -36,7 +36,7 @@ public class UserIntegrationTest {
     public void testEmailNotValidMissingAt() {
 
         assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User("test.com", "password", "username"));
+            testEntityManager.persistAndFlush(new User("test.com", "password", "username", true));
         });
     }
 
@@ -44,7 +44,7 @@ public class UserIntegrationTest {
     public void testEmailNotValidMissingEnding() {
 
         assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User("test@email.", "password", "username"));
+            testEntityManager.persistAndFlush(new User("test@email.", "password", "username", true));
         });
     }
 
@@ -52,7 +52,7 @@ public class UserIntegrationTest {
     public void testEmailNotValidMissingUsername() {
 
         assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User("@email.com", "password", "username"));
+            testEntityManager.persistAndFlush(new User("@email.com", "password", "username", true));
         });
     }
 
@@ -60,7 +60,7 @@ public class UserIntegrationTest {
     public void testEmailNotValidMissingDot() {
 
         assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User("test@emailcom", "password", "username"));
+            testEntityManager.persistAndFlush(new User("test@emailcom", "password", "username", true));
         });
     }
 
@@ -76,9 +76,9 @@ public class UserIntegrationTest {
         user2.setEmail(user.getEmail());
 
         testEntityManager.persistAndFlush(user);
-        assertThatExceptionOfType(javax.persistence.EntityExistsException.class).isThrownBy(()->{
+        assertThatExceptionOfType(javax.persistence.PersistenceException.class).isThrownBy(()->{
             testEntityManager.persistAndFlush(user2);
-        });
+        }).withCauseInstanceOf(org.hibernate.exception.ConstraintViolationException.class);
     }
 
     @Test
@@ -93,10 +93,11 @@ public class UserIntegrationTest {
         // We have to clear the manager so that flush doesn't rethrow the same exception.
         testEntityManager.clear();
 
-        user.setPassword("");
+        var user2 = createValidUser();
+        user2.setPassword("");
 
         assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(user);
+            testEntityManager.persistAndFlush(user2);
         });
     }
 
@@ -143,11 +144,11 @@ public class UserIntegrationTest {
     }
 
     private User createValidUser() {
-        return new User("test@email.com", "password", "username");
+        return new User("test@email.com", "password", "username", true);
     }
 
     private User createSecondValidUser() {
-        return new User(ANOTHER_VALID_EMAIL, "password", "username2");
+        return new User(ANOTHER_VALID_EMAIL, "password", "username2", true);
     }
 
     private static final String ANOTHER_VALID_EMAIL = "test2@email.com";

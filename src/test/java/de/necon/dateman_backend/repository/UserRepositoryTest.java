@@ -25,7 +25,7 @@ public class UserRepositoryTest {
     @Test
     public void testFindByEmail() {
         final String email = "test@email.com";
-        User user = new User(email, "password", "username");
+        User user = new User(email, "password", "username", true);
         testEntityManager.persist(user);
 
         var optionalUser = userRepository.findByEmail(email);
@@ -37,7 +37,7 @@ public class UserRepositoryTest {
     @Test
     public void testFindByUsername() {
         final String username = "username";
-        User user = new User("test@email.com", "password", username);
+        User user = new User("test@email.com", "password", username, true);
         testEntityManager.persist(user);
 
         var optionalUser = userRepository.findByUsername(username);
