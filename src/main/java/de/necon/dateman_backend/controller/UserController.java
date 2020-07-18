@@ -2,6 +2,9 @@ package de.necon.dateman_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.dto.RegisterUserDto;
+import de.necon.dateman_backend.dto.TokenDto;
+import de.necon.dateman_backend.exception.ExpiredException;
+import de.necon.dateman_backend.exception.ItemNotFoundException;
 import de.necon.dateman_backend.exception.ServerErrorList;
 import de.necon.dateman_backend.service.OnRegistrationCompleteEvent;
 import de.necon.dateman_backend.service.EmailServiceImpl;
@@ -26,9 +29,6 @@ public class UserController {
     private final ResponseWriter responseWriter;
     private final EmailServiceImpl emailService;
     private final UserService userService;
-
-   // @Resource(name="authenticationManager")
-   // private AuthenticationManager authManager;
 
     private final ObjectMapper objectMapper;
     private final PasswordEncoder encoder;
@@ -72,6 +72,27 @@ public class UserController {
         if (savedUser == null) return null;
         var responseMessage = new RegisterResponse(savedUser.getEmail(), savedUser.getUsername());
         return responseMessage;
+    }
+
+    @PostMapping("/confirmUser")
+    public void confirmUser(@RequestBody TokenDto tokenDto, final HttpServletResponse response) throws IOException {
+
+        var token = tokenDto.getToken();
+
+        if (token == null) {
+            responseWriter.writeJSONErrors(List.of("No token specified."), response);
+            return;
+        }
+
+        try {
+            userService.verifyUserAccount(tokenDto.getToken());
+        } catch(ItemNotFoundException e) {
+            responseWriter.writeJSONErrors(List.of("Not a valid token"), response);
+        } catch (ExpiredException e) {
+            responseWriter.writeJSONErrors(List.of("Token is expired"), response);
+        }
+
+
     }
 
     public static class LoginRequest {
