@@ -9,6 +9,8 @@ import java.util.Calendar;
 import java.util.Date;
 
 @Entity
+@Table(
+        uniqueConstraints={@UniqueConstraint(columnNames={"user_id"})})
 public class VerificationToken {
     private static final int EXPIRATION = 60 * 24;
 
@@ -29,10 +31,12 @@ public class VerificationToken {
     @Column(nullable = false)
     private String token;
 
+    @NotNull
     @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 
+    @NotNull
     private Date expiryDate;
 
     public VerificationToken() {

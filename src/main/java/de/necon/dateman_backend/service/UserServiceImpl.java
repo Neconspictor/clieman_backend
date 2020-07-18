@@ -2,6 +2,7 @@ package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.controller.ServerMessageCodes;
 import de.necon.dateman_backend.dto.RegisterUserDto;
+import de.necon.dateman_backend.exception.ItemNotFoundException;
 import de.necon.dateman_backend.exception.ServerErrorList;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
@@ -66,7 +67,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUser(String verificationToken) {
+    public User getUser(String verificationToken) throws ItemNotFoundException {
         return getVerificationToken(verificationToken).getUser();
     }
 
@@ -82,7 +83,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public VerificationToken getVerificationToken(String verificationToken) {
-        return tokenRepository.findByToken(verificationToken);
+    public VerificationToken getVerificationToken(String verificationToken) throws ItemNotFoundException {
+            var optional = tokenRepository.findByToken(verificationToken);
+            if (!optional.isPresent())
+                throw new ItemNotFoundException("Couldn't find verification token with id: " + verificationToken, null);
+            return optional.get();
     }
 }

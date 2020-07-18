@@ -1,6 +1,6 @@
-package de.necon.dateman_backend.repository;
+package de.necon.dateman_backend.model;
 
-import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -24,46 +24,6 @@ public class UserIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Test
-    public void testEmailNotNull() {
-
-        assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User(null, "password", "username", true));
-        });
-    }
-
-    @Test
-    public void testEmailNotValidMissingAt() {
-
-        assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User("test.com", "password", "username", true));
-        });
-    }
-
-    @Test
-    public void testEmailNotValidMissingEnding() {
-
-        assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User("test@email.", "password", "username", true));
-        });
-    }
-
-    @Test
-    public void testEmailNotValidMissingUsername() {
-
-        assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User("@email.com", "password", "username", true));
-        });
-    }
-
-    @Test
-    public void testEmailNotValidMissingDot() {
-
-        assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(new User("test@emailcom", "password", "username", true));
-        });
-    }
-
     /**
      * Tests that it is not possible to add multiple users with the same email address.
      */
@@ -79,36 +39,6 @@ public class UserIntegrationTest {
         assertThatExceptionOfType(javax.persistence.PersistenceException.class).isThrownBy(()->{
             testEntityManager.persistAndFlush(user2);
         }).withCauseInstanceOf(org.hibernate.exception.ConstraintViolationException.class);
-    }
-
-    @Test
-    public void testPasswordEmptyNotAllowed() {
-        var user = createValidUser();
-        user.setPassword("");
-
-        assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(user);
-        });
-
-        // We have to clear the manager so that flush doesn't rethrow the same exception.
-        testEntityManager.clear();
-
-        var user2 = createValidUser();
-        user2.setPassword("");
-
-        assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            testEntityManager.persistAndFlush(user2);
-        });
-    }
-
-    @Test
-    public void testPasswordNotNull() {
-
-        assertThatExceptionOfType(javax.validation.ConstraintViolationException.class).isThrownBy(()->{
-            var user = createValidUser();
-            user.setPassword(null);
-            testEntityManager.persistAndFlush(user);
-        });
     }
 
     @Test
