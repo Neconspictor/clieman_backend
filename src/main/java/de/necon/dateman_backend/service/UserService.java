@@ -1,11 +1,11 @@
 package de.necon.dateman_backend.service;
 
-import de.necon.dateman_backend.dto.RegisterUserDto;
+import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.exception.ExpiredException;
 import de.necon.dateman_backend.exception.ServerErrorList;
 import de.necon.dateman_backend.exception.ItemNotFoundException;
-import de.necon.dateman_backend.model.User;
-import de.necon.dateman_backend.model.VerificationToken;
+import de.necon.dateman_backend.unit.User;
+import de.necon.dateman_backend.unit.VerificationToken;
 
 public interface UserService {
 

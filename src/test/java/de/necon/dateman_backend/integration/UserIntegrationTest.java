@@ -1,5 +1,6 @@
-package de.necon.dateman_backend.model;
+package de.necon.dateman_backend.integration;
 
+import de.necon.dateman_backend.unit.User;
 import de.necon.dateman_backend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

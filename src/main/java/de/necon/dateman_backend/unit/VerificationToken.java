@@ -1,5 +1,7 @@
-package de.necon.dateman_backend.model;
+package de.necon.dateman_backend.unit;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -86,5 +88,41 @@ public class VerificationToken {
 
     public void setExpiryDate(Date expiryDate) {
         this.expiryDate = expiryDate;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        VerificationToken that = (VerificationToken) o;
+
+        return new EqualsBuilder()
+                .append(id, that.id)
+                .append(token, that.token)
+                .append(user, that.user)
+                .append(expiryDate, that.expiryDate)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(id)
+                .append(token)
+                .append(user)
+                .append(expiryDate)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "VerificationToken{" +
+                "id=" + id +
+                ", token='" + token + '\'' +
+                ", user=" + user +
+                ", expiryDate=" + expiryDate +
+                '}';
     }
 }

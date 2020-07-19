@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.necon.dateman_backend.network.ExceptionToMessageMapper;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.security.JWTAuthenticationFilter;
 import de.necon.dateman_backend.security.JWTAuthorizationFilter;
@@ -38,24 +39,30 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     private final ObjectMapper objectMapper;
     private final ResponseWriter responseWriter;
     private final UserRepository userRepository;
+    private final ExceptionToMessageMapper exceptionToMessageMapper;
 
     //private final UserController userController;
 
     public WebSecurity(MyBasicAuthenticationEntryPoint authenticationEntryPoint,
-                       UserDetailsServiceImpl userDetailsService, ObjectMapper objectMapper, ResponseWriter responseWriter, UserRepository userRepository) {
+                       UserDetailsServiceImpl userDetailsService,
+                       ObjectMapper objectMapper,
+                       ResponseWriter responseWriter,
+                       UserRepository userRepository,
+                       ExceptionToMessageMapper exceptionToMessageMapper) {
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.userDetailsService = userDetailsService;
         this.objectMapper = objectMapper;
         this.responseWriter = responseWriter;
         //this.userController = userController;
         this.userRepository = userRepository;
+        this.exceptionToMessageMapper = exceptionToMessageMapper;
     }
 
 
     @Bean
     public JWTAuthenticationFilter authenticationFilter() throws Exception {
         JWTAuthenticationFilter authenticationFilter
-                = new JWTAuthenticationFilter(objectMapper, userRepository, responseWriter);
+                = new JWTAuthenticationFilter(objectMapper, userRepository, responseWriter, exceptionToMessageMapper);
         authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login", "POST"));
         authenticationFilter.setAuthenticationManager(authenticationManagerBean());
         return authenticationFilter;

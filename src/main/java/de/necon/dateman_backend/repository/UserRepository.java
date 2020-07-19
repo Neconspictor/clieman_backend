@@ -1,7 +1,6 @@
 package de.necon.dateman_backend.repository;
 
-import de.necon.dateman_backend.model.User;
-import org.springframework.data.repository.Repository;
+import de.necon.dateman_backend.unit.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

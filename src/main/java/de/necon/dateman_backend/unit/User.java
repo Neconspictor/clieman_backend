@@ -1,6 +1,7 @@
-package de.necon.dateman_backend.model;
+package de.necon.dateman_backend.unit;
 
 import de.necon.dateman_backend.config.RepositoryConfig;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.Parameter;
@@ -8,6 +9,7 @@ import org.hibernate.annotations.Parameter;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+import java.util.Objects;
 
 /**
  * Holds information about users registered at Dateman.
@@ -81,6 +83,23 @@ public class User {
         this.enabled = enabled ? enabled : false;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+
+        return new EqualsBuilder()
+                .append(enabled, user.enabled)
+                .append(email, user.email)
+                .append(id, user.id)
+                .append(password, user.password)
+                .append(username, user.username)
+                .isEquals();
+    }
+
     public String getEmail() {
         return this.email;
     }
@@ -91,6 +110,11 @@ public class User {
 
     public String getUsername() {
         return this.username;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email, enabled, id, password, username);
     }
 
     public boolean isEnabled() {
@@ -117,21 +141,6 @@ public class User {
         this.username = username;
     }
 
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{ email: ");
-        builder.append(email);
-        builder.append("{ enabled: ");
-        builder.append(enabled);
-        builder.append(", password: ");
-        builder.append(password);
-        builder.append(", username: ");
-        builder.append(username);
-        builder.append(" }");
-
-        return builder.toString();
-    }
-
     /**
      * Id of the user. Is used for retrieving user information and data (clients, events, etc.).
      */
@@ -141,5 +150,16 @@ public class User {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "email='" + email + '\'' +
+                ", enabled=" + enabled +
+                ", id=" + id +
+                ", password='" + password + '\'' +
+                ", username='" + username + '\'' +
+                '}';
     }
 }

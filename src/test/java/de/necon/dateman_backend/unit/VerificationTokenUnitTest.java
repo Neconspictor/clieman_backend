@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.model;
+package de.necon.dateman_backend.unit;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

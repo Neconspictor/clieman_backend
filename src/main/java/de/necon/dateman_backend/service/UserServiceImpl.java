@@ -1,12 +1,11 @@
 package de.necon.dateman_backend.service;
 
-import de.necon.dateman_backend.controller.ServerMessageCodes;
-import de.necon.dateman_backend.dto.RegisterUserDto;
+import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.exception.ExpiredException;
 import de.necon.dateman_backend.exception.ItemNotFoundException;
 import de.necon.dateman_backend.exception.ServerErrorList;
-import de.necon.dateman_backend.model.User;
-import de.necon.dateman_backend.model.VerificationToken;
+import de.necon.dateman_backend.unit.User;
+import de.necon.dateman_backend.unit.VerificationToken;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,8 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static de.necon.dateman_backend.config.ServerMessages.*;
 
 @Service
 @Transactional
@@ -35,9 +36,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     Environment env;
 
-    @Autowired
-    EmailServiceImpl emailService;
-
     @Override
     public User registerNewUserAccount(RegisterUserDto userDto) throws ServerErrorList {
         List<String> errors = new ArrayList<>();
@@ -47,18 +45,19 @@ public class UserServiceImpl implements UserService {
         //}
 
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            errors.add(ServerMessageCodes.EMAIL_ALREADY_EXISTS);
+            errors.add(EMAIL_ALREADY_EXISTS);
         }
 
-        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            errors.add(ServerMessageCodes.USERNAME_ALREADY_EXISTS);
+        if (userDto.getUsername() != null &&
+                userRepository.findByUsername(userDto.getUsername()).isPresent()) {
+            errors.add(USERNAME_ALREADY_EXISTS);
         }
 
         if (userDto.getPassword() == null) {
-            errors.add(ServerMessageCodes.NO_PASSWORD);
+            errors.add(NO_PASSWORD);
 
         } else if (userDto.getPassword().length() < User.MIN_PASSWORD_LENGTH) {
-            errors.add(ServerMessageCodes.PASSWORD_TOO_SHORT);
+            errors.add(PASSWORD_TOO_SHORT);
         }
 
         if (errors.size() > 0) throw new ServerErrorList(errors);

@@ -1,6 +1,5 @@
-package de.necon.dateman_backend.model;
+package de.necon.dateman_backend.integration;
 
-import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -16,14 +15,11 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 public class VerificationTokenIntegrationTest {
-    private static final Logger logger = LoggerFactory.getLogger(UserIntegrationTest.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(VerificationTokenIntegrationTest.class);
 
     @Autowired
     private TestEntityManager testEntityManager;
-
-    @Autowired
-    private VerificationTokenRepository repository;
-
 
     @Test
     public void testUserUnique() {

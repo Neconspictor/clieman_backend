@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.dto;
+package de.necon.dateman_backend.network;
 
 /**
  * Data Transfer object for registering a user

@@ -1,6 +1,6 @@
-package de.necon.dateman_backend.repository;
+package de.necon.dateman_backend.integration;
 
-import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +9,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static de.necon.dateman_backend.factory.ModelFactory.createToken;
-import static de.necon.dateman_backend.factory.ModelFactory.createValidUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

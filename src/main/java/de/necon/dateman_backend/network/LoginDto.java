@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.dto;
+package de.necon.dateman_backend.network;
 
 /**
  * Data Transfer object for login
@@ -13,7 +13,7 @@ public class LoginDto {
 
     }
 
-    public LoginDto(String password, String principal) {
+    public LoginDto(String principal, String password) {
         this.password = password;
         this.principal = principal;
     }

@@ -3,7 +3,8 @@ package de.necon.dateman_backend.security;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.config.SecurityConstants;
-import de.necon.dateman_backend.controller.UserController;
+import de.necon.dateman_backend.network.ExceptionToMessageMapper;
+import de.necon.dateman_backend.network.LoginDto;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.util.ResponseWriter;
 import org.springframework.http.HttpStatus;
@@ -25,19 +26,23 @@ import java.util.List;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 import static de.necon.dateman_backend.config.SecurityConstants.*;
-import static de.necon.dateman_backend.controller.ServerMessageCodes.INVALID_LOGIN;
+import static de.necon.dateman_backend.config.ServerMessages.INVALID_LOGIN;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final ResponseWriter responseWriter;
 
+    private final ExceptionToMessageMapper exceptionToMessageMapper;
+
     public JWTAuthenticationFilter(ObjectMapper objectMapper,
                                    UserRepository userRepository,
-                                   ResponseWriter responseWriter) {
+                                   ResponseWriter responseWriter,
+                                   ExceptionToMessageMapper exceptionToMessageMapper) {
         this.objectMapper = objectMapper;
         this.userRepository = userRepository;
         this.responseWriter = responseWriter;
+        this.exceptionToMessageMapper = exceptionToMessageMapper;
     }
 
     @Override
@@ -46,12 +51,12 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         try {
 
             String requestBody = new String(req.getInputStream().readAllBytes());
-            UserController.LoginRequest loginRequest = objectMapper.readValue(requestBody, UserController.LoginRequest.class);
+            LoginDto loginDto = objectMapper.readValue(requestBody, LoginDto.class);
 
             return this.getAuthenticationManager().authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.username,
-                            loginRequest.password,
+                            loginDto.getPrincipal(),
+                            loginDto.getPassword(),
                             new ArrayList<>())
             );
         } catch (IOException e) {
@@ -92,7 +97,9 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             throws IOException, ServletException {
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        responseWriter.writeJSONErrors(List.of(INVALID_LOGIN, failed.getMessage()), response);
+
+        responseWriter.writeJSONErrors(List.of(INVALID_LOGIN,
+                exceptionToMessageMapper.mapExceptionToMessageCode(failed)), response);
     }
 
 

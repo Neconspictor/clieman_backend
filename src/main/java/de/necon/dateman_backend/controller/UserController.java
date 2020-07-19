@@ -1,14 +1,14 @@
 package de.necon.dateman_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.necon.dateman_backend.dto.RegisterUserDto;
-import de.necon.dateman_backend.dto.TokenDto;
+import de.necon.dateman_backend.network.RegisterUserDto;
+import de.necon.dateman_backend.network.TokenDto;
 import de.necon.dateman_backend.exception.ExpiredException;
 import de.necon.dateman_backend.exception.ItemNotFoundException;
 import de.necon.dateman_backend.exception.ServerErrorList;
 import de.necon.dateman_backend.service.OnRegistrationCompleteEvent;
 import de.necon.dateman_backend.service.EmailServiceImpl;
-import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.unit.User;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.service.UserService;
 import de.necon.dateman_backend.util.ResponseWriter;
@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+
+import static de.necon.dateman_backend.config.ServerMessages.*;
 
 @RestController
 public class UserController {
@@ -80,24 +82,17 @@ public class UserController {
         var token = tokenDto.getToken();
 
         if (token == null) {
-            responseWriter.writeJSONErrors(List.of("No token specified."), response);
+            responseWriter.writeJSONErrors(List.of(NO_TOKEN), response);
             return;
         }
 
         try {
             userService.verifyUserAccount(tokenDto.getToken());
         } catch(ItemNotFoundException e) {
-            responseWriter.writeJSONErrors(List.of("Not a valid token"), response);
+            responseWriter.writeJSONErrors(List.of(TOKEN_IS_NOT_VALID), response);
         } catch (ExpiredException e) {
-            responseWriter.writeJSONErrors(List.of("Token is expired"), response);
+            responseWriter.writeJSONErrors(List.of(TOKEN_IS_EXPIRED), response);
         }
-
-
-    }
-
-    public static class LoginRequest {
-        public String username;
-        public String password;
     }
 
     public static class RegisterResponse {
