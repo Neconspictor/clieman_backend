@@ -1,14 +1,16 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.unit.VerificationToken;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
-public class EmailServiceImpl {
+@Service
+public class EmailServiceImpl implements EmailService {
 
     @Autowired
     private JavaMailSender emailSender;
@@ -18,6 +20,7 @@ public class EmailServiceImpl {
 
     private static String FROM = "noreply@dateman.com";
 
+    @Override
     public void sendSimpleMessage(String to, String subject, String text) {
 
         SimpleMailMessage message = new SimpleMailMessage();
@@ -29,6 +32,7 @@ public class EmailServiceImpl {
         emailSender.send(message);
     }
 
+    @Override
     public void sendVerificationMessage(VerificationToken token) {
 
         SimpleMailMessage message = new SimpleMailMessage();
@@ -45,8 +49,10 @@ public class EmailServiceImpl {
 
     private String preprocessEmail(String email) {
         // if we have test environment we use a test email instead
+
         String testEmail = env.getProperty("dateman.test.email");
-        if (testEmail != null) {
+        Boolean noOverride = BooleanUtils.toBoolean(env.getProperty("dateman.test.no-override"));
+        if (testEmail != null && !noOverride) {
             return testEmail;
         }
 

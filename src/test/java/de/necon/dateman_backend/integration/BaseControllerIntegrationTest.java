@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.icegreen.greenmail.store.FolderException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class BaseControllerIntegrationTest {
 
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws FolderException {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())

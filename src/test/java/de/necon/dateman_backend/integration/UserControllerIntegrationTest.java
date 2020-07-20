@@ -1,21 +1,22 @@
 package de.necon.dateman_backend.integration;
 
+import com.icegreen.greenmail.store.FolderException;
 import de.necon.dateman_backend.config.ServerMessages;
 import de.necon.dateman_backend.exception.ServerErrorList;
 import de.necon.dateman_backend.network.LoginDto;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
-import de.necon.dateman_backend.service.EmailServiceImpl;
+import de.necon.dateman_backend.extensions.TestSmtpServer;
 import de.necon.dateman_backend.unit.User;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.network.TokenDto;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.io.StringWriter;
 import java.util.Date;
@@ -23,9 +24,13 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
+@ActiveProfiles("test")
 public class UserControllerIntegrationTest extends BaseControllerIntegrationTest {
 
     @Autowired PasswordEncoder encoder;
+
+    @Autowired
+    Environment env;
 
     @Autowired
     UserRepository userRepository;
@@ -33,9 +38,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
     @Autowired
     VerificationTokenRepository tokenRepository;
 
-    // Note: we don't want to send emails. So we disable them using a mock.
-    @MockBean
-    EmailServiceImpl emailService;
+    private static TestSmtpServer testSmtpServer;
 
     private User disabledUser;
     private static final String disabledUserPassword = "password";
@@ -44,9 +47,23 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
     private static final String wrongPassword = "wrong password";
     private static final String notExistingUser = "not@existing.com";
 
+    private static int MAIL_PORT;
+
+
+    @BeforeAll
+    public static void staticSetup(@Autowired Environment env) {
+        MAIL_PORT = Integer.parseInt(env.getProperty("spring.mail.port"));
+        testSmtpServer = new TestSmtpServer(MAIL_PORT);
+    }
+
+    @AfterAll
+    public static void staticShutdown(@Autowired Environment env) {
+        testSmtpServer.stop();
+    }
+
     @BeforeEach
     @Override
-    public void setup() {
+    public void setup() throws FolderException {
 
         super.setup();
 
@@ -57,6 +74,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
 
         userRepository.deleteAll();
         tokenRepository.deleteAll();
+        testSmtpServer.reset();
     }
 
     @Test
@@ -99,6 +117,29 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
         assertTrue(errors.get(1).equals(ServerMessages.BAD_CREDENTIALS));
     }
 
+    @Test
+    public void register_verificationEmailIsSentToUser() throws Exception {
+
+        assertTrue(testSmtpServer.getMessages().length == 0);
+
+        RegisterUserDto userDto = new RegisterUserDto();
+        userDto.setEmail("new@user.com");
+        userDto.setPassword("password");
+
+        var response = registerUser(userDto);
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        var messages = testSmtpServer.getMessages();
+
+        assertTrue(messages.length == 1);
+
+        var message = messages[0];
+        var recipients = message.getAllRecipients();
+
+        assertTrue(recipients.length == 1);
+        System.out.println(recipients[0].toString().equals(userDto.getEmail()));
+    }
+
 
     @Test
     public void register_newUserIsDisabled() throws Exception {
@@ -116,8 +157,6 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
 
     @Test
     public void register_multipleUsersWithNoUsernameAreAllowed() throws Exception {
-
-        userRepository.deleteAll();
 
         var user1 = new RegisterUserDto("new@user.com", "password", null);
         var user2 = new RegisterUserDto("new2@user.com", "password", null);

@@ -18,7 +18,7 @@ public class RegistrationListener  implements
     private MessageSource messages;
 
     @Autowired
-    private EmailServiceImpl emailService;
+    private EmailService emailService;
 
     RandomStringGenerator generator = new RandomStringGenerator.Builder()
             .withinRange('0', '9').build();

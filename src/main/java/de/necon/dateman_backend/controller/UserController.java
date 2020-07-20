@@ -6,6 +6,7 @@ import de.necon.dateman_backend.network.TokenDto;
 import de.necon.dateman_backend.exception.ExpiredException;
 import de.necon.dateman_backend.exception.ItemNotFoundException;
 import de.necon.dateman_backend.exception.ServerErrorList;
+import de.necon.dateman_backend.service.EmailService;
 import de.necon.dateman_backend.service.OnRegistrationCompleteEvent;
 import de.necon.dateman_backend.service.EmailServiceImpl;
 import de.necon.dateman_backend.unit.User;
@@ -29,7 +30,7 @@ public class UserController {
     private final UserRepository repository;
 
     private final ResponseWriter responseWriter;
-    private final EmailServiceImpl emailService;
+    private final EmailService emailService;
     private final UserService userService;
 
     private final ObjectMapper objectMapper;
@@ -43,7 +44,7 @@ public class UserController {
 
     public UserController(UserRepository repository,
                           ResponseWriter responseWriter,
-                          EmailServiceImpl emailService,
+                          EmailService emailService,
                           UserService userService, ObjectMapper objectMapper,
                           PasswordEncoder encoder) {
         this.repository = repository;
