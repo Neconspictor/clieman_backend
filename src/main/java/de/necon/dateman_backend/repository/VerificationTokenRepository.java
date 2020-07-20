@@ -1,7 +1,7 @@
 package de.necon.dateman_backend.repository;
 
-import de.necon.dateman_backend.unit.User;
-import de.necon.dateman_backend.unit.VerificationToken;
+import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.model.VerificationToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

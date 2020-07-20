@@ -1,11 +1,9 @@
 package de.necon.dateman_backend.service;
 
+import de.necon.dateman_backend.exception.*;
 import de.necon.dateman_backend.network.RegisterUserDto;
-import de.necon.dateman_backend.exception.ExpiredException;
-import de.necon.dateman_backend.exception.ItemNotFoundException;
-import de.necon.dateman_backend.exception.ServerErrorList;
-import de.necon.dateman_backend.unit.User;
-import de.necon.dateman_backend.unit.VerificationToken;
+import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.model.VerificationToken;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.ValidatorFactory;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -62,11 +63,18 @@ public class UserServiceImpl implements UserService {
 
         if (errors.size() > 0) throw new ServerErrorList(errors);
 
-        var user = new User(userDto.getEmail(),
-                encoder.encode(userDto.getPassword()),
-                userDto.getUsername(), false);
+        try {
+            var user = new User(userDto.getEmail(),
+                    encoder.encode(userDto.getPassword()),
+                    userDto.getUsername(), false);
+            var validator = Validation.buildDefaultValidatorFactory().getValidator();
+            validator.validate(user);
 
-        return userRepository.saveAndFlush(user); // potentially throws validation exceptions handled by global exception handler
+            return userRepository.saveAndFlush(user); // potentially throws validation exceptions handled by global exception handler
+        } catch(ConstraintViolationException e) {
+
+            throw new ServerErrorList(e);
+        }
     }
 
 
@@ -92,14 +100,39 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveRegisteredUser(User user) {
+    public void saveRegisteredUser(User user) throws UserNotRegisteredException {
+
+        //check that the user is registerd (enabled) and stored in the databse.
+        var optionalUser = userRepository.findByEmail(user.getEmail());
+        if (!optionalUser.isPresent()) {
+            throw new UserNotRegisteredException(USER_NOT_FOUND);
+        } else if (!optionalUser.get().isEnabled()) {
+            throw new UserNotRegisteredException(USER_IS_DISABLED);
+        }
+
         userRepository.saveAndFlush(user);
     }
 
     @Override
-    public VerificationToken createVerificationToken(User user, String token) {
+    public VerificationToken createVerificationToken(User user, String token) throws TokenCreationException {
         var verificationToken = new VerificationToken(token, user);
-        return tokenRepository.saveAndFlush(verificationToken);
+
+        var optionalUser = userRepository.findByEmail(user.getEmail());
+
+        //check that the user exists
+        if (!optionalUser.isPresent()) {
+            throw new TokenCreationException(USER_NOT_FOUND);
+        }
+
+        if (optionalUser.get().isEnabled()) {
+            throw new TokenCreationException(USER_IS_NOT_DISABLED);
+        }
+
+        try {
+            return tokenRepository.saveAndFlush(verificationToken);
+        } catch(ConstraintViolationException e) {
+            throw new TokenCreationException(e.getMessage());
+        }
     }
 
     @Override

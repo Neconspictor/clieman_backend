@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.unit;
+package de.necon.dateman_backend.model;
 
 import de.necon.dateman_backend.config.RepositoryConfig;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -10,6 +10,8 @@ import org.hibernate.annotations.Parameter;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.util.Objects;
+
+import static de.necon.dateman_backend.config.ServerMessages.*;
 
 /**
  * Holds information about users registered at Dateman.
@@ -25,8 +27,8 @@ public class User {
     /**
      *  Primary source for authentication and used to send emails to the user (e.g. during registration process).
      */
-    @NotNull(message = "Email must not be null.")
-    @Email(regexp = ".+@.+\\..+", message = "Email for user must be valid.")
+    @NotNull(message = NO_EMAIL)
+    @Email(regexp = ".+@.+\\..+", message = EMAIL_NOT_VALID)
     @Column(nullable = false, unique=true)
     @NaturalId
     @Size(max = RepositoryConfig.MAX_STRING_SIZE)
@@ -51,11 +53,11 @@ public class User {
     /**
      * Password for authentication. Should be result of a cryptographic hash function.
      */
-    @NotNull(message="Password must not be null.")
-    @NotEmpty
+    @NotNull(message=NO_PASSWORD)
+    @NotEmpty(message=PASSWORD_TOO_SHORT)
     @Column(nullable = false)
-    @Size(min = MIN_PASSWORD_LENGTH, max = RepositoryConfig.MAX_STRING_SIZE, message="Password too short")
-    @Size(max = RepositoryConfig.MAX_STRING_SIZE, message="Password too long")
+    @Size(min = MIN_PASSWORD_LENGTH, message=PASSWORD_TOO_SHORT)
+    @Size(max = RepositoryConfig.MAX_STRING_SIZE, message=PASSWORD_TOO_LONG)
     private String password;
 
     /**

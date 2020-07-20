@@ -1,6 +1,6 @@
 package de.necon.dateman_backend.service;
 
-import de.necon.dateman_backend.unit.User;
+import de.necon.dateman_backend.model.User;
 import org.springframework.context.ApplicationEvent;
 
 public class OnRegistrationCompleteEvent extends ApplicationEvent {

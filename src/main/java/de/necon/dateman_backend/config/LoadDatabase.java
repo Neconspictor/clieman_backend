@@ -1,6 +1,6 @@
 package de.necon.dateman_backend.config;
 
-import de.necon.dateman_backend.unit.User;
+import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

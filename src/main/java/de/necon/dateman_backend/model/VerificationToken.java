@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.unit;
+package de.necon.dateman_backend.model;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -9,6 +9,8 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
+
+import static de.necon.dateman_backend.config.ServerMessages.*;
 
 @Entity
 @Table(
@@ -29,16 +31,16 @@ public class VerificationToken {
     )
     private Long id;
 
-    @NotNull
+    @NotNull(message=NO_TOKEN)
     @Column(nullable = false)
     private String token;
 
-    @NotNull
+    @NotNull(message=NO_USER)
     @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 
-    @NotNull
+    @NotNull(message=NO_EXPIRY_DATE)
     private Date expiryDate;
 
     public VerificationToken() {

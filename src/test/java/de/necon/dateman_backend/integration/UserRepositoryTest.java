@@ -1,7 +1,7 @@
 package de.necon.dateman_backend.integration;
 
 import de.necon.dateman_backend.repository.UserRepository;
-import de.necon.dateman_backend.unit.User;
+import de.necon.dateman_backend.model.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

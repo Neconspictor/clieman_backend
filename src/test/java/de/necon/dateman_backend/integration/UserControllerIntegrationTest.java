@@ -7,7 +7,7 @@ import de.necon.dateman_backend.network.LoginDto;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.extensions.TestSmtpServer;
-import de.necon.dateman_backend.unit.User;
+import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.network.TokenDto;
 import org.junit.jupiter.api.*;

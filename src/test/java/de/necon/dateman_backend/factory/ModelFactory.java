@@ -1,7 +1,7 @@
 package de.necon.dateman_backend.factory;
 
-import de.necon.dateman_backend.unit.User;
-import de.necon.dateman_backend.unit.VerificationToken;
+import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.model.VerificationToken;
 
 public final class ModelFactory {
 

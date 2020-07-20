@@ -1,5 +1,8 @@
 package de.necon.dateman_backend.unit;
 
+import de.necon.dateman_backend.config.RepositoryConfig;
+import de.necon.dateman_backend.model.User;
+import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -91,6 +94,29 @@ public class UserUnitTest {
 
         var user = createValidUser();
         user.setPassword(null);
+        var violations = validator.validate(user);
+        assertTrue(violations.size() > 0);
+        var constraint = violations.iterator().next();
+        assertTrue(constraint.getPropertyPath().toString().equals("password"));
+    }
+
+    @Test
+    public void testPasswordTooShort() {
+
+        var user = createValidUser();
+        user.setPassword("0");
+        var violations = validator.validate(user);
+        assertTrue(violations.size() > 0);
+        var constraint = violations.iterator().next();
+        assertTrue(constraint.getPropertyPath().toString().equals("password"));
+    }
+
+    @Test
+    public void testPasswordTooLong() {
+
+        var user = createValidUser();
+        var generator = new RandomStringGenerator.Builder().build();
+        user.setPassword(generator.generate(RepositoryConfig.MAX_STRING_SIZE + 1));
         var violations = validator.validate(user);
         assertTrue(violations.size() > 0);
         var constraint = violations.iterator().next();

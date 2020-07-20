@@ -1,8 +1,7 @@
 package de.necon.dateman_backend.service;
 
-import de.necon.dateman_backend.unit.VerificationToken;
+import de.necon.dateman_backend.model.VerificationToken;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.SimpleMailMessage;
