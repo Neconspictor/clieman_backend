@@ -294,24 +294,24 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getUser_ExistingToken() throws ServiceError {
+    public void getUserOfToken_ExistingToken() throws ServiceError {
 
         var user = new User("test2@demail.de", "password", "username", true);
         userRepository.saveAndFlush(user);
         String token = "01234";
         tokenRepository.saveAndFlush(new VerificationToken(token, user));
 
-        var retrivedUser = userService.getUser(token);
+        var retrivedUser = userService.getUserOfToken(token);
         assertEquals(user, retrivedUser);
     }
 
     @Test
-    public void getUser_NotExistingToken() throws ServiceError {
+    public void getUserOfToken_NotExistingToken() throws ServiceError {
 
         String token = "01234";
 
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.getUser(token);
+            userService.getUserOfToken(token);
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), TOKEN_IS_NOT_VALID);
@@ -327,25 +327,84 @@ public class UserServiceTest {
         userService.createVerificationToken(user, "01234");
 
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.deleteUser(user.getEmail());
+            userService.deleteUser(user);
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), USER_IS_LINKED_TO_ENTITIES);
     }
 
     @Test
-    public void deleteUser_EmailWorks() throws ServiceError {
+    public void deleteUser_ValidUser() throws ServiceError {
 
         var user = new User("test2@demail.de", "password", "username", false);
         userRepository.saveAndFlush(user);
-        userService.deleteUser(user.getEmail());
+        userService.deleteUser(user);
     }
 
     @Test
-    public void deleteUser_UsernameWorks() throws ServiceError {
+    public void deleteUser_InvalidUser() throws ServiceError {
 
         var user = new User("test2@demail.de", "password", "username", false);
-        userRepository.saveAndFlush(user);
-        userService.deleteUser(user.getUsername());
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.deleteUser(user);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void verifyUserAccount_verificationWorks() throws ServiceError {
+
+        var registerUserDto = new RegisterUserDto("test2@demail.de", "password", "username");
+        var user = userService.registerNewUserAccount(registerUserDto);
+        var token = userService.createVerificationToken(user, "012345");
+
+        userService.verifyUserAccount(token.getToken());
+
+        //check that verification token is consumed
+        assertFalse(tokenRepository.findByToken(token.getToken()).isPresent());
+
+        //check that user is enabled
+        var optionalUser = userRepository.findByEmail(user.getEmail());
+        user = optionalUser.get();
+        assertTrue(user.isEnabled());
+    }
+
+    @Test
+    public void verifyUserAccount_invalidTokenNotAllowed() throws ServiceError {
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.verifyUserAccount("invalidToken");
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), TOKEN_IS_NOT_VALID);
+    }
+
+    @Test
+    public void getUserByPrincipal_EmailWorks() throws ServiceError {
+
+        var registerUserDto = new RegisterUserDto("test@email.com", "password", "username");
+        var user = userService.registerNewUserAccount(registerUserDto);
+        var retrievedUser = userService.getUserByPrincipal(user.getEmail());
+        assertEquals(user, retrievedUser);
+    }
+
+    @Test
+    public void getUserByPrincipal_UsernameWorks() throws ServiceError {
+
+        var registerUserDto = new RegisterUserDto("test@email.com", "password", "username");
+        var user = userService.registerNewUserAccount(registerUserDto);
+        var retrievedUser = userService.getUserByPrincipal(user.getUsername());
+        assertEquals(user, retrievedUser);
+    }
+
+    @Test
+    public void getUserByPrincipal_NotExistingFails() throws ServiceError {
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.getUserByPrincipal("notExisting");
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
     }
 }

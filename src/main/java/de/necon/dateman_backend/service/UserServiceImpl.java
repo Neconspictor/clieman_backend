@@ -39,16 +39,10 @@ public class UserServiceImpl implements UserService {
     Environment env;
 
     @Override
-    public void deleteUser(String principal) throws ServiceError {
-        //check that principal points to an existing user
-        var optionalUser = userRepository.findByEmail(principal);
-        if (!optionalUser.isPresent())
-            optionalUser = userRepository.findByUsername(principal);
+    public void deleteUser(User user) throws ServiceError {
 
-        if (!optionalUser.isPresent())
-            throw new ServiceError(USER_NOT_FOUND);
+        user = getUserByPrincipal(user.getEmail());
 
-        var user = optionalUser.get();
         try {
             userRepository.deleteById(user.getId());
             userRepository.flush();
@@ -101,7 +95,7 @@ public class UserServiceImpl implements UserService {
             throw new ServiceError(TOKEN_IS_EXPIRED);
         }
 
-        var user = getUser(verificationToken);
+        var user = getUserOfToken(verificationToken);
         user.setEnabled(true);
 
         tokenRepository.delete(token);
@@ -109,13 +103,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUser(String verificationToken) throws ServiceError {
+    public User getUserOfToken(String verificationToken) throws ServiceError {
         return getVerificationToken(verificationToken).getUser();
     }
 
     @Override
-    public void updateEnabledUser(String principal, User user) throws ServiceError {
-
+    public User getUserByPrincipal(String principal) throws ServiceError {
         //check that the user is registerd (enabled) and stored in the databse.
         var optionalUser = userRepository.findByEmail(principal);
 
@@ -124,11 +117,19 @@ public class UserServiceImpl implements UserService {
 
         if (!optionalUser.isPresent()) {
             throw new ServiceError(USER_NOT_FOUND);
-        } else if (!optionalUser.get().isEnabled()) {
+        }
+
+        return optionalUser.get();
+    }
+
+    @Override
+    public void updateEnabledUser(String principal, User user) throws ServiceError {
+
+        var oldUser = getUserByPrincipal(principal);
+        if (!oldUser.isEnabled()) {
             throw new ServiceError(USER_IS_DISABLED);
         }
 
-        var oldUser = optionalUser.get();
         user.setId(oldUser.getId()); //we want to stay the internal id the same.
         userRepository.delete(oldUser);
         userRepository.flush(); // necessary so that the following statement doesn't raise a constraint violation.
@@ -139,14 +140,8 @@ public class UserServiceImpl implements UserService {
     public VerificationToken createVerificationToken(User user, String token) throws ServiceError {
         var verificationToken = new VerificationToken(token, user);
 
-        var optionalUser = userRepository.findByEmail(user.getEmail());
-
-        //check that the user exists
-        if (!optionalUser.isPresent()) {
-            throw new ServiceError(USER_NOT_FOUND);
-        }
-
-        if (optionalUser.get().isEnabled()) {
+        user = getUserByPrincipal(user.getEmail());
+        if (user.isEnabled()) {
             throw new ServiceError(USER_IS_NOT_DISABLED);
         }
 

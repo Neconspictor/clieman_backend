@@ -13,12 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 public interface UserService {
 
     /**
-     * Deletes a user by its email or username ( = the principal)
-     * @param principal Email or username.
-     * @throws ServiceError If principal points to no valid user or the user cannot be deleted since he is referenced
+     * Deletes a user.
+     * @param user The user to be deleted.
+     * @throws ServiceError If the user is not stored in the database or the user cannot be deleted since he is referenced
      * by other entities (e.g. verification tokens).
      */
-    void deleteUser(String principal) throws ServiceError;
+    void deleteUser(User user) throws ServiceError;
 
     /**
      * Registers a new user account.
@@ -44,7 +44,15 @@ public interface UserService {
      * @return The found user.
      * @throws ServiceError If the verification token does not exist.
      */
-    User getUser(String verificationToken) throws ServiceError;
+    User getUserOfToken(String verificationToken) throws ServiceError;
+
+    /**
+     * Provides a user identified by its principal (email or username).
+     * @param principal Email or username of the user.
+     * @return The user identified by 'principal'
+     * @throws ServiceError If 'principal' matches no user.
+     */
+    User getUserByPrincipal(String principal) throws ServiceError;
 
     /**
      * Updates an enabled user in the database.
