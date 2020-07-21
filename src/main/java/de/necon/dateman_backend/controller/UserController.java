@@ -1,11 +1,10 @@
 package de.necon.dateman_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.network.TokenDto;
-import de.necon.dateman_backend.exception.ExpiredException;
-import de.necon.dateman_backend.exception.ItemNotFoundException;
-import de.necon.dateman_backend.exception.ServerErrorList;
+import de.necon.dateman_backend.network.ErrorListDto;
 import de.necon.dateman_backend.service.EmailService;
 import de.necon.dateman_backend.service.OnRegistrationCompleteEvent;
 import de.necon.dateman_backend.model.User;
@@ -67,7 +66,7 @@ public class UserController {
             savedUser = userService.registerNewUserAccount(userDto);
             eventPublisher.publishEvent(new OnRegistrationCompleteEvent(savedUser));
 
-        } catch(ServerErrorList e) {
+        } catch(ServiceError e) {
             responseWriter.writeJSONErrors(e.getErrors(), response);
         }
 
@@ -88,10 +87,8 @@ public class UserController {
 
         try {
             userService.verifyUserAccount(tokenDto.getToken());
-        } catch(ItemNotFoundException e) {
-            responseWriter.writeJSONErrors(List.of(TOKEN_IS_NOT_VALID), response);
-        } catch (ExpiredException e) {
-            responseWriter.writeJSONErrors(List.of(TOKEN_IS_EXPIRED), response);
+        } catch(ServiceError e) {
+            responseWriter.writeJSONErrors(e.getErrors(), response);
         }
     }
 

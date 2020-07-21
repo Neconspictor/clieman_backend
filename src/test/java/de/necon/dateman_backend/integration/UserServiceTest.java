@@ -1,9 +1,9 @@
 package de.necon.dateman_backend.integration;
 
 import de.necon.dateman_backend.config.RepositoryConfig;
-import de.necon.dateman_backend.exception.ServerErrorList;
-import de.necon.dateman_backend.exception.TokenCreationException;
+import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.model.VerificationToken;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
@@ -21,8 +21,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static de.necon.dateman_backend.config.ServerMessages.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -46,14 +45,14 @@ public class UserServiceTest {
 
 
     @Test
-    public void registerNewUserAccount_NewUserIsAdded() {
+    public void registerNewUserAccount_NewUserIsAdded() throws ServiceError {
 
         var user = userService.registerNewUserAccount(new RegisterUserDto("test@email.com", "password", "username"));
         assertTrue(userRepository.findByEmail(user.getEmail()).isPresent());
     }
 
     @Test
-    public void registerNewUserAccount_UserCannotBeAddedTwice() {
+    public void registerNewUserAccount_UserCannotBeAddedTwice() throws ServiceError {
 
         assertTrue(userRepository.findAll().size() == 0);
 
@@ -63,12 +62,14 @@ public class UserServiceTest {
 
         assertTrue(userRepository.findAll().size() == 1);
 
-        ServerErrorList errorList = (ServerErrorList)Asserter.assertException(ServerErrorList.class).isThrownBy(()->{
+        ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             userService.registerNewUserAccount(dto);
         }).source();
 
-        Asserter.assertContainsError(errorList, EMAIL_ALREADY_EXISTS);
-        Asserter.assertContainsError(errorList, USERNAME_ALREADY_EXISTS);
+        var errors = serviceError.getErrors();
+
+        Asserter.assertContainsError(errors, EMAIL_ALREADY_EXISTS);
+        Asserter.assertContainsError(errors, USERNAME_ALREADY_EXISTS);
 
         assertTrue(userRepository.findAll().size() == 1);
     }
@@ -84,25 +85,26 @@ public class UserServiceTest {
         var dto = new RegisterUserDto("test@email.com", generator.generate(User.MIN_PASSWORD_LENGTH - 1),
                 "username");
 
-        ServerErrorList errorList = (ServerErrorList)Asserter.assertException(ServerErrorList.class).isThrownBy(()->{
+        ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             userService.registerNewUserAccount(dto);
         }).source();
 
-        Asserter.assertContainsError(errorList, PASSWORD_TOO_SHORT);
+        Asserter.assertContainsError(serviceError.getErrors(), PASSWORD_TOO_SHORT);
     }
 
     /**
      * Note: Too long passwords are accepted since they are cut by the the password encoder!
      */
     @Test
-    public void registerNewUserAccount_TooLongPasswordIsAllowed() {
+    public void registerNewUserAccount_TooLongPasswordIsAllowed() throws ServiceError {
 
         assertTrue(userRepository.findAll().size() == 0);
 
         RandomStringGenerator generator = new RandomStringGenerator.Builder()
                 .withinRange('0', 'Z').build();
 
-        var dto = new RegisterUserDto("test@email.com", generator.generate(RepositoryConfig.MAX_STRING_SIZE * 2 + 1),
+        var dto = new RegisterUserDto("test@email.com",
+                generator.generate(RepositoryConfig.MAX_STRING_SIZE * 2 + 1),
                 "username");
 
         userService.registerNewUserAccount(dto);
@@ -114,11 +116,11 @@ public class UserServiceTest {
         var dto = new RegisterUserDto(null, "password",
                 "username");
 
-        ServerErrorList errorList = (ServerErrorList)Asserter.assertException(ServerErrorList.class).isThrownBy(()->{
+        ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             userService.registerNewUserAccount(dto);
         }).source();
 
-        Asserter.assertContainsError(errorList, NO_EMAIL);
+        Asserter.assertContainsError(serviceError.getErrors(), NO_EMAIL);
     }
 
     @Test
@@ -127,11 +129,11 @@ public class UserServiceTest {
         var dto = new RegisterUserDto("", "password",
                 "username");
 
-        ServerErrorList errorList = (ServerErrorList)Asserter.assertException(ServerErrorList.class).isThrownBy(()->{
+        ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             userService.registerNewUserAccount(dto);
         }).source();
 
-        Asserter.assertContainsError(errorList, EMAIL_NOT_VALID);
+        Asserter.assertContainsError(serviceError.getErrors(), EMAIL_NOT_VALID);
     }
 
     @Test
@@ -140,15 +142,15 @@ public class UserServiceTest {
         var dto = new RegisterUserDto("test.com", "password",
                 "username");
 
-        ServerErrorList errorList = (ServerErrorList)Asserter.assertException(ServerErrorList.class).isThrownBy(()->{
+        ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             userService.registerNewUserAccount(dto);
         }).source();
 
-        Asserter.assertContainsError(errorList, EMAIL_NOT_VALID);
+        Asserter.assertContainsError(serviceError.getErrors(), EMAIL_NOT_VALID);
     }
 
     @Test
-    public void createVerificationToken_validCreation() {
+    public void createVerificationToken_validCreation() throws ServiceError {
 
         var dto = new RegisterUserDto("test@email.com", "password",
                 "username");
@@ -170,8 +172,123 @@ public class UserServiceTest {
         userRepository.saveAndFlush(user);
 
         var tokenString = "012583";
-        Assertions.assertThatExceptionOfType(TokenCreationException.class).isThrownBy(()->{
+        var serviceError  = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             userService.createVerificationToken(user, tokenString);
-        }).withMessage(USER_IS_NOT_DISABLED);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_IS_NOT_DISABLED);
+    }
+
+    @Test
+    public void createVerificationToken_NullTokenIsNotAllowed() {
+
+        var user = new User("test@email.com", "password",
+                "username", false);
+        userRepository.saveAndFlush(user);
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.createVerificationToken(user, null);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), NO_TOKEN);
+    }
+
+    @Test
+    public void createVerificationToken_EmptyTokenIsNotAllowed() {
+
+        var user = new User("test@email.com", "password",
+                "username", false);
+        userRepository.saveAndFlush(user);
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.createVerificationToken(user, "");
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), NO_TOKEN);
+    }
+
+    @Test
+    public void getVerificationToken_registeredTokenIsProvided() throws ServiceError {
+
+        var user = new User("test@email.com", "password",
+                "username", false);
+        userRepository.saveAndFlush(user);
+
+        var token = new VerificationToken("012345", user);
+
+        tokenRepository.saveAndFlush(token);
+
+        var providedToken = userService.getVerificationToken(token.getToken());
+
+        assertEquals(token, providedToken);
+    }
+
+    @Test
+    public void getVerificationToken_ExceptionIfNotRegisteredTokenIsRequested() {
+
+        var tokenString = "012583";
+        Assertions.assertThatExceptionOfType(ServiceError.class).isThrownBy(()->{
+            userService.getVerificationToken(tokenString);
+        }).withMessage(TOKEN_IS_NOT_VALID);
+    }
+
+    @Test
+    public void updateEnableddUser_EnabledUserGetsUpdated_withEmail() throws ServiceError {
+
+        //Add an enabled user
+        var user = new User("test@email.com", "password",
+                "username", true);
+        userRepository.saveAndFlush(user);
+
+        var updatedUser = new User("test2@demail.de", user.getPassword(), user.getUsername(), user.isEnabled());
+        userService.updateEnabledUser(user.getEmail(), updatedUser);
+
+        assertFalse(userRepository.findByEmail(user.getEmail()).isPresent());
+        assertTrue(userRepository.findByEmail(updatedUser.getEmail()).isPresent());
+    }
+
+    @Test
+    public void updateEnableddUser_EnabledUserGetsUpdated_withUsername() throws ServiceError {
+
+        //Add an enabled user
+        var user = new User("test@email.com", "password",
+                "username", true);
+        userRepository.saveAndFlush(user);
+
+        var updatedUser = new User("test2@demail.de", user.getPassword(), user.getUsername(), user.isEnabled());
+        userService.updateEnabledUser(user.getUsername(), updatedUser);
+
+        assertFalse(userRepository.findByEmail(user.getEmail()).isPresent());
+        assertTrue(userRepository.findByEmail(updatedUser.getEmail()).isPresent());
+    }
+
+    @Test
+    public void updateEnableddUser_DisabledUserRejected() throws ServiceError {
+
+        //Add an disabled user
+        var user = new User("test@email.com", "password",
+                "username", false);
+        userRepository.saveAndFlush(user);
+
+        var updatedUser = new User("test2@demail.de", user.getPassword(), user.getUsername(), true);
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.updateEnabledUser(user.getEmail(), updatedUser);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_IS_DISABLED);
+    }
+
+    @Test
+    public void updateEnableddUser_NotExistingUserIsRejected() throws ServiceError {
+
+        String email = "test@email.com";
+        var updatedUser = new User("test2@demail.de", "password", "username", true);
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.updateEnabledUser(email, updatedUser);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
     }
 }

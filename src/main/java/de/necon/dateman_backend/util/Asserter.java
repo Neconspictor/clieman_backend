@@ -1,9 +1,8 @@
 package de.necon.dateman_backend.util;
 
-import de.necon.dateman_backend.exception.ServerErrorList;
+import de.necon.dateman_backend.network.ErrorListDto;
 
-import java.util.concurrent.Callable;
-import java.util.function.Function;
+import java.util.List;
 
 public class Asserter {
 
@@ -16,8 +15,8 @@ public class Asserter {
         return new ThrownBuilder(expectedThrowableClass);
     }
 
-    public static void assertContainsError(ServerErrorList errorList, String error) {
-        for(var e : errorList.getErrors()) {
+    public static void assertContainsError(List<String> errorList, String error) {
+        for(var e : errorList) {
             if (error.equals(error)) return;
         }
 
@@ -36,9 +35,9 @@ public class Asserter {
             this.thrownException  = null;
         }
 
-        public ThrownBuilder isThrownBy(Runnable func) {
+        public ThrownBuilder isThrownBy(ThrowableCallable func) {
             try {
-                func.run();
+                func.call();
             } catch(Throwable t) {
                 if (!t.getClass().equals(expectedThrowableClass)) {
                     throw new AssertionError("Got execption of type '" + t.getClass() + "'\n"
@@ -54,5 +53,9 @@ public class Asserter {
         public Throwable source() {
             return thrownException;
         }
+    }
+
+    public static interface ThrowableCallable {
+        void call() throws Throwable;
     }
 }

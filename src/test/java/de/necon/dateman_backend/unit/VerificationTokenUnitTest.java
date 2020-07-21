@@ -35,6 +35,17 @@ public class VerificationTokenUnitTest {
     }
 
     @Test
+    public void testTokenNotEmpty() {
+
+        VerificationToken token = new VerificationToken("", createValidUser());
+        var violations = validator.validate(token);
+        assertTrue(violations.size() == 1);
+        var constraint = violations.iterator().next();
+        assertTrue(constraint.getPropertyPath().toString().equals("token"));
+    }
+
+
+    @Test
     public void testUserNotNull() {
 
         VerificationToken token = new VerificationToken("token", null);

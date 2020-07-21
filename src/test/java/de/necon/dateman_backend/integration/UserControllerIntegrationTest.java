@@ -2,7 +2,7 @@ package de.necon.dateman_backend.integration;
 
 import com.icegreen.greenmail.store.FolderException;
 import de.necon.dateman_backend.config.ServerMessages;
-import de.necon.dateman_backend.exception.ServerErrorList;
+import de.necon.dateman_backend.network.ErrorListDto;
 import de.necon.dateman_backend.network.LoginDto;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
@@ -91,7 +91,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
         userRepository.saveAndFlush(disabledUser);
         var response = login(new LoginDto(disabledUser.getEmail(), disabledUserPassword));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
-        var errors = objectMapper.readValue(response.getContentAsString(), ServerErrorList.class).getErrors();
+        var errors = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class).getErrors();
         assertTrue(errors.get(0).equals(ServerMessages.INVALID_LOGIN));
         assertTrue(errors.get(1).equals(ServerMessages.USER_IS_DISABLED));
     }
@@ -102,7 +102,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
         userRepository.saveAndFlush(enabledUser);
         var response = login(new LoginDto(enabledUser.getEmail(), wrongPassword));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
-        var errors = objectMapper.readValue(response.getContentAsString(), ServerErrorList.class).getErrors();
+        var errors = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class).getErrors();
         assertTrue(errors.get(0).equals(ServerMessages.INVALID_LOGIN));
         assertTrue(errors.get(1).equals(ServerMessages.BAD_CREDENTIALS));
     }
@@ -112,7 +112,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
 
         var response = login(new LoginDto(notExistingUser, "somePassword"));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
-        var errors = objectMapper.readValue(response.getContentAsString(), ServerErrorList.class).getErrors();
+        var errors = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class).getErrors();
         assertTrue(errors.get(0).equals(ServerMessages.INVALID_LOGIN));
         assertTrue(errors.get(1).equals(ServerMessages.BAD_CREDENTIALS));
     }
@@ -258,7 +258,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
         //check that user confirmation doesn't work
         response = confirmUser(new TokenDto(token.getToken()));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
-        var errorList = objectMapper.readValue(response.getContentAsString(), ServerErrorList.class);
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
         errorList.getErrors().get(0).equals(ServerMessages.TOKEN_IS_EXPIRED);
 
         // user should be disabled
@@ -281,7 +281,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
         //check that user confirmation doesn't work if no token is specified
         response = confirmUser(new TokenDto(null));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
-        var errorList = objectMapper.readValue(response.getContentAsString(), ServerErrorList.class);
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
         errorList.getErrors().get(0).equals(ServerMessages.NO_TOKEN);
     }
 
@@ -299,7 +299,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
         //check that user confirmation doesn't work if an invalid token is specified
         response = confirmUser(new TokenDto("a"));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
-        var errorList = objectMapper.readValue(response.getContentAsString(), ServerErrorList.class);
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
         errorList.getErrors().get(0).equals(ServerMessages.TOKEN_IS_NOT_VALID);
     }
 

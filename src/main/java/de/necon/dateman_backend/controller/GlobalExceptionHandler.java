@@ -1,5 +1,8 @@
 package de.necon.dateman_backend.controller;
 
+import de.necon.dateman_backend.network.ErrorListDto;
+import de.necon.dateman_backend.exception.ServiceError;
+import de.necon.dateman_backend.util.MessageExtractor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -7,8 +10,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.validation.ConstraintViolationException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @ControllerAdvice
 class GlobalExceptionHandler {
@@ -16,29 +17,14 @@ class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ErrorList  processConstraintViolationException(ConstraintViolationException e) {
-
-        var errors = e.getConstraintViolations().stream().map((constraint)->{
-            return constraint.getMessage();
-        }).collect(Collectors.toUnmodifiableList());
-
-        return new ErrorList(errors);
+    public ErrorListDto processConstraintViolationException(ConstraintViolationException e) {
+        return new ErrorListDto(MessageExtractor.extract(e));
     }
 
-
-    public static class ErrorList {
-        private List<String> errors;
-
-        private ErrorList(List<String> errors) {
-            this.errors = errors;
-        }
-
-        public List<String> getErrors() {
-            return errors;
-        }
-
-        public void setErrors(List<String> errors) {
-            this.errors = errors;
-        }
+    @ExceptionHandler(ServiceError.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ErrorListDto processServiceError(ServiceError e) {
+        return new ErrorListDto(e.getErrors());
     }
 }

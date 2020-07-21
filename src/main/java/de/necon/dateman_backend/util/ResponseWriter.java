@@ -1,6 +1,8 @@
 package de.necon.dateman_backend.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.necon.dateman_backend.network.ErrorListDto;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
@@ -13,10 +15,12 @@ public class ResponseWriter {
         this.objectMapper = objectMapper;
     }
 
+    public void writeBadRequest(Object object, final HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        objectMapper.writeValue(response.getWriter(), object);
+    }
 
     public void writeJSONErrors(final List<String> errors, final HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        var body = objectMapper.createObjectNode().set("errors", objectMapper.valueToTree(errors));
-        objectMapper.writeValue(response.getWriter(), body);
+        writeBadRequest(new ErrorListDto(errors), response);
     }
 }

@@ -5,6 +5,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -31,8 +32,8 @@ public class VerificationToken {
     )
     private Long id;
 
-    @NotNull(message=NO_TOKEN)
     @Column(nullable = false)
+    @NotEmpty(message=NO_TOKEN)
     private String token;
 
     @NotNull(message=NO_USER)
