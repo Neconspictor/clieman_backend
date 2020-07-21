@@ -25,9 +25,6 @@ public class LoadDatabase {
     CommandLineRunner initDatabase(UserRepository repository) {
         return args -> {
 
-            //System.out.println(env.getProperty("DATEMAN_GMAIL_PASSWORD"));
-            //System.out.println(env.getProperty("DATEMAN_GMAIL_USERNAME"));
-
             log.info("Preloading " + repository.save(new User("pumuckl@muenchen.de", encoder.encode("r3dG0blin"), "Pumuckl", true)));
             log.info("Preloading " + repository.save(new User("schlomo@testimonial.de", encoder.encode("sleepAbitAndRest"), "Schlomo", true)));
             log.info("Preloading " + repository.save(new User("test@email.com", encoder.encode("pass"), "test", false)));

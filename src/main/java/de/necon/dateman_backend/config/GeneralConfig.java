@@ -29,10 +29,6 @@ public class GeneralConfig {
                 .register(DisabledException.class, ServiceErrorMessages.USER_IS_DISABLED)
                 .register(BadCredentialsException.class, ServiceErrorMessages.BAD_CREDENTIALS);
 
-
-
-
         return mapper;
     }
-
 }

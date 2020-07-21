@@ -1,9 +1,10 @@
 package de.necon.dateman_backend.util;
 
-import de.necon.dateman_backend.network.ErrorListDto;
-
 import java.util.List;
 
+/**
+ * An utility for making assertions.
+ */
 public class Asserter {
 
     public static String AssertNotNull(String str, String errorMsg) {
@@ -24,6 +25,9 @@ public class Asserter {
     }
 
 
+    /**
+     * Builder for building exception assertions.
+     */
     public static class ThrownBuilder {
 
         private Class<? extends Throwable> expectedThrowableClass;
