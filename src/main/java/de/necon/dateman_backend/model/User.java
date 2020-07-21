@@ -11,7 +11,7 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.util.Objects;
 
-import static de.necon.dateman_backend.config.ServerMessages.*;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 
 /**
  * Holds information about users registered at Dateman.

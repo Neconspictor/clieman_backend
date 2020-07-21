@@ -1,26 +1,25 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
-import de.necon.dateman_backend.network.ErrorListDto;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.util.MessageExtractor;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
 import java.util.Date;
 
-import static de.necon.dateman_backend.config.ServerMessages.*;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -38,6 +37,26 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     Environment env;
+
+    @Override
+    public void deleteUser(String principal) throws ServiceError {
+        //check that principal points to an existing user
+        var optionalUser = userRepository.findByEmail(principal);
+        if (!optionalUser.isPresent())
+            optionalUser = userRepository.findByUsername(principal);
+
+        if (!optionalUser.isPresent())
+            throw new ServiceError(USER_NOT_FOUND);
+
+        var user = optionalUser.get();
+        try {
+            userRepository.deleteById(user.getId());
+            userRepository.flush();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            logger.error("Exception : "+ ExceptionUtils.getStackTrace(e));
+            throw new ServiceError(USER_IS_LINKED_TO_ENTITIES);
+        }
+    }
 
     @Override
     public User registerNewUserAccount(RegisterUserDto userDto) throws ServiceError {

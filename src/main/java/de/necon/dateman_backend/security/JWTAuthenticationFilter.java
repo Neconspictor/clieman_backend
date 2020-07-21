@@ -26,7 +26,7 @@ import java.util.List;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 import static de.necon.dateman_backend.config.SecurityConstants.*;
-import static de.necon.dateman_backend.config.ServerMessages.INVALID_LOGIN;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.INVALID_LOGIN;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final ObjectMapper objectMapper;

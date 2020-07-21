@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static de.necon.dateman_backend.config.ServerMessages.INTERNAL_SERVER_ERROR;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.INTERNAL_SERVER_ERROR;
 
 public class ExceptionToMessageMapper {
 

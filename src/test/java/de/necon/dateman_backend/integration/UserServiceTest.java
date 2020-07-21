@@ -19,8 +19,9 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
-import static de.necon.dateman_backend.config.ServerMessages.*;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
@@ -290,5 +291,61 @@ public class UserServiceTest {
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void getUser_ExistingToken() throws ServiceError {
+
+        var user = new User("test2@demail.de", "password", "username", true);
+        userRepository.saveAndFlush(user);
+        String token = "01234";
+        tokenRepository.saveAndFlush(new VerificationToken(token, user));
+
+        var retrivedUser = userService.getUser(token);
+        assertEquals(user, retrivedUser);
+    }
+
+    @Test
+    public void getUser_NotExistingToken() throws ServiceError {
+
+        String token = "01234";
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.getUser(token);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), TOKEN_IS_NOT_VALID);
+    }
+
+
+    @Transactional
+    @Test
+    public void deleteUser_DeleteFailsWithLinkedToken() throws ServiceError {
+
+        var user = new User("test2@demail.de", "password", "username", false);
+        userRepository.saveAndFlush(user);
+        userService.createVerificationToken(user, "01234");
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.deleteUser(user.getEmail());
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_IS_LINKED_TO_ENTITIES);
+    }
+
+    @Test
+    public void deleteUser_EmailWorks() throws ServiceError {
+
+        var user = new User("test2@demail.de", "password", "username", false);
+        userRepository.saveAndFlush(user);
+        userService.deleteUser(user.getEmail());
+    }
+
+    @Test
+    public void deleteUser_UsernameWorks() throws ServiceError {
+
+        var user = new User("test2@demail.de", "password", "username", false);
+        userRepository.saveAndFlush(user);
+        userService.deleteUser(user.getUsername());
     }
 }

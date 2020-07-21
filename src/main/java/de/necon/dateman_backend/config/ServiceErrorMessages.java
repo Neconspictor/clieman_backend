@@ -1,6 +1,6 @@
 package de.necon.dateman_backend.config;
 
-public class ServerMessages {
+public class ServiceErrorMessages {
 
     public static final String NO_EMAIL = "NoEmail";
     public static final String EMAIL_NOT_VALID = "EmailNotValid";
@@ -21,4 +21,5 @@ public class ServerMessages {
     public static final String NO_TOKEN = "NoToken";
     public static final String NO_USER = "NoUser";
     public static final String NO_EXPIRY_DATE = "NoExpiryDate";
+    public static final String USER_IS_LINKED_TO_ENTITIES = "UserIsLinkedToEntities";
 }

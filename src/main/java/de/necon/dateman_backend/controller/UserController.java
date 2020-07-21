@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.network.TokenDto;
-import de.necon.dateman_backend.network.ErrorListDto;
 import de.necon.dateman_backend.service.EmailService;
 import de.necon.dateman_backend.service.OnRegistrationCompleteEvent;
 import de.necon.dateman_backend.model.User;
@@ -21,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-import static de.necon.dateman_backend.config.ServerMessages.*;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 
 @RestController
 public class UserController {

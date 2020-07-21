@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 
-import static de.necon.dateman_backend.config.ServerMessages.*;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 
 @Entity
 @Table(

@@ -26,8 +26,8 @@ public class GeneralConfig {
     ExceptionToMessageMapper exceptionToMessageMapper() {
 
         var mapper = new ExceptionToMessageMapper()
-                .register(DisabledException.class, ServerMessages.USER_IS_DISABLED)
-                .register(BadCredentialsException.class, ServerMessages.BAD_CREDENTIALS);
+                .register(DisabledException.class, ServiceErrorMessages.USER_IS_DISABLED)
+                .register(BadCredentialsException.class, ServiceErrorMessages.BAD_CREDENTIALS);
 
 
 
