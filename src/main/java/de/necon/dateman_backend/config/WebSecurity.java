@@ -7,7 +7,9 @@ import de.necon.dateman_backend.security.JWTAuthenticationFilter;
 import de.necon.dateman_backend.security.JWTAuthorizationFilter;
 import de.necon.dateman_backend.security.MyBasicAuthenticationEntryPoint;
 import de.necon.dateman_backend.service.UserDetailsServiceImpl;
+import de.necon.dateman_backend.service.UserService;
 import de.necon.dateman_backend.util.ResponseWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -34,6 +36,9 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     private final ResponseWriter responseWriter;
     private final UserRepository userRepository;
     private final ExceptionToMessageMapper exceptionToMessageMapper;
+
+    @Autowired
+    UserService userService;
 
 
     public WebSecurity(MyBasicAuthenticationEntryPoint authenticationEntryPoint,
@@ -72,14 +77,19 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterBefore(
                         authenticationFilter(), JWTAuthenticationFilter.class)
-                .addFilter(new JWTAuthorizationFilter(authenticationManager()))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager(), userService))
 
                 // this disables session creation on Spring Security
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
                 .and()
                 .exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint);
+                .authenticationEntryPoint(authenticationEntryPoint)
+
+                .and()
+                .requiresChannel()
+                .anyRequest()
+                .requiresSecure();
     }
 
     @Override

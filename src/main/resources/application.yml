@@ -43,5 +43,13 @@ spring:
             enable: true
 
 server:
-  port : 8081
+
+  ssl:
+    key-store: classpath:dateman_backend_keystore.p12
+    key-store-password: ${DATEMAN_KEYSTORE_PASSWORD}
+    key-store-type: pkcs12
+    key-alias: dateman-key
+    key-password: ${DATEMAN_KEYSTORE_PASSWORD}
+
+  port : 8443
 

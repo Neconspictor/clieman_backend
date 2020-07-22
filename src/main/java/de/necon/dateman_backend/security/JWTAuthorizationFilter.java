@@ -3,6 +3,9 @@ package de.necon.dateman_backend.security;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import de.necon.dateman_backend.config.SecurityConstants;
+import de.necon.dateman_backend.exception.ServiceError;
+import de.necon.dateman_backend.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,9 +22,12 @@ import static de.necon.dateman_backend.config.SecurityConstants.*;
 
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
+    UserService userService;
 
-    public JWTAuthorizationFilter(AuthenticationManager authenticationManager) {
+
+    public JWTAuthorizationFilter(AuthenticationManager authenticationManager,  UserService userService) {
         super(authenticationManager);
+        this.userService = userService;
     }
 
     @Override
@@ -52,9 +58,14 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
                     .verify(token.replace(TOKEN_PREFIX, ""))
                     .getSubject();
 
-            if (user != null) {
+            //check that user exists
+            try {
+                var storedUser = userService.getUserByPrincipal(user);
+                user = storedUser.getEmail();
                 return new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
+            }catch (ServiceError e) {
             }
+
             return null;
         }
         return null;
