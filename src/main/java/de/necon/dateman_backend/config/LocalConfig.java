@@ -18,6 +18,6 @@ import java.util.Locale;
 @Configuration
 @PropertySource(
         ignoreResourceNotFound = true,
-        value = {"file:application-local.properties", "file:application-local.yml"})
+        value = {"file:application-local.yml"}, factory = YamlPropertySourceFactory.class)
 public class LocalConfig {
 }
