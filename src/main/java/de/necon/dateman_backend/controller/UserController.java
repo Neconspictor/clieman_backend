@@ -63,6 +63,9 @@ public class UserController {
     List<Client> getClients() {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
         var result =  userService.getClientsOfUser(user);
+        result.forEach(c->{
+            c.setUser(null);
+        });
         return result;
     }
 

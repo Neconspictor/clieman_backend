@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ import java.util.TimeZone;
 import static de.necon.dateman_backend.config.ServiceErrorMessages.NO_USER;
 
 @Entity
+@JsonInclude(JsonInclude.Include.NON_NULL) //This ensures that only non null fields get serialized
 public class Client implements Serializable  {
 
     @Basic
