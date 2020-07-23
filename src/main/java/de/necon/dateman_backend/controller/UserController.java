@@ -2,6 +2,7 @@ package de.necon.dateman_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.exception.ServiceError;
+import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.network.TokenDto;
 import de.necon.dateman_backend.service.EmailService;
@@ -13,6 +14,7 @@ import de.necon.dateman_backend.util.ResponseWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,6 +57,13 @@ public class UserController {
     @GetMapping("/users")
     List<User> users() {
         return repository.findAll();
+    }
+
+    @GetMapping("/clients")
+    List<Client> getClients() {
+        var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
+        var result =  userService.getClientsOfUser(user);
+        return result;
     }
 
     @PostMapping("/register")

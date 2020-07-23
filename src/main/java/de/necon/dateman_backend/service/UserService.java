@@ -1,11 +1,14 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
+import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Service for interacting with users.
@@ -37,6 +40,15 @@ public interface UserService {
      * @throws ServiceError If the token is not stored in the database or if the token is expired.
      */
     void verifyUserAccount(String verificationToken) throws ServiceError;
+
+
+    /**
+     * Provides the clients created by the given user.
+     * @param user The user for who we want retrive the clients.
+     * @return The clients of the user. The list is never be null.
+     * @throws ServiceError If 'user' is null, if 'user' is not stored in the database or an io error occurs.
+     */
+    List<Client> getClientsOfUser(User user) throws ServiceError;
 
     /**
      * Gets a user by its linked verification token.

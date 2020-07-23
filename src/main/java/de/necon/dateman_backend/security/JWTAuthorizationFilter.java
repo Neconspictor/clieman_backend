@@ -62,7 +62,9 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
             try {
                 var storedUser = userService.getUserByPrincipal(user);
                 user = storedUser.getEmail();
-                return new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
+                var result = new UsernamePasswordAuthenticationToken(storedUser.getEmail(), null, new ArrayList<>());
+                result.setDetails(storedUser);
+                return result;
             }catch (ServiceError e) {
             }
 
