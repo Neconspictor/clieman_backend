@@ -1,4 +1,4 @@
-package de.necon.dateman_backend;
+package de.necon.dateman_backend.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

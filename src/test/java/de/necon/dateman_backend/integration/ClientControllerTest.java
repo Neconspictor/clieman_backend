@@ -10,19 +10,29 @@ import de.necon.dateman_backend.service.JWTTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @ActiveProfiles("test")
-public class ClientControllerTest extends BaseControllerTest {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+public class ClientControllerTest {
 
     @Autowired PasswordEncoder encoder;
+
+    @Autowired
+    MockMvc mvc;
 
     @Autowired
     Environment env;
@@ -49,10 +59,10 @@ public class ClientControllerTest extends BaseControllerTest {
 
 
     @BeforeEach
-    @Override
+    //@Override
     public void setup() throws FolderException {
 
-        super.setup();
+        //super.setup();
 
         disabledUser = new User("test@email.com",
                 encoder.encode(disabledUserPassword), "test", false);

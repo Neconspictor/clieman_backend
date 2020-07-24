@@ -52,4 +52,5 @@ server:
     key-password: ${dateman.DATEMAN_KEYSTORE_PASSWORD}
 
   port : 8443
+  http-redirect-port: 8081
 

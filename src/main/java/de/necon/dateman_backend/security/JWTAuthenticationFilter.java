@@ -73,7 +73,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             FilterChain chain,
                                             Authentication auth) throws IOException, ServletException {
 
-        final String secret = SecurityConstants.getSecret();
+        final String secret = tokenService.getSecret();
         String email = ((User)auth.getPrincipal()).getUsername(); // User class of userdetails!
         var optionalUser = userRepository.findByEmail(email);
 

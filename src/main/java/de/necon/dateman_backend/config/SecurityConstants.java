@@ -21,7 +21,7 @@ public class SecurityConstants {
         secret = Asserter.AssertNotNull(env.getProperty(SECRET_ENV_VARIABLE), SECRET_ENV_VARIABLE + " property not set!");
     }
 
-    public static String getSecret()  {
-        return secret;
+    public static String getSecret(Environment env)  {
+        return Asserter.AssertNotNull(env.getProperty(SECRET_ENV_VARIABLE), SECRET_ENV_VARIABLE + " property not set!");
     }
 }

@@ -1,19 +1,34 @@
 package de.necon.dateman_backend.integration;
 
+import com.icegreen.greenmail.store.FolderException;
 import de.necon.dateman_backend.BaseControllerTest;
 import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.service.JWTTokenService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class JWTTokenTest extends BaseControllerTest {
+@ActiveProfiles("test")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+public class JWTTokenTest {
+
+    @Autowired
+    MockMvc mvc;
 
     @Autowired
     private JWTTokenService tokenService;
@@ -21,13 +36,19 @@ public class JWTTokenTest extends BaseControllerTest {
     @Autowired
     UserRepository userRepository;
 
-    @TestConfiguration
-    public static class Config {
+    @Autowired
+    ClientRepository clientRepository;
 
-        @Bean
-        public JWTTokenService tokenService(@Autowired UserRepository userRepository) {
-            return new JWTTokenService(userRepository);
-        }
+    @Autowired
+    VerificationTokenRepository tokenRepository;
+
+    @BeforeEach
+    public void setup() throws FolderException {
+
+        //super.setup();
+        clientRepository.deleteAll();
+        tokenRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test

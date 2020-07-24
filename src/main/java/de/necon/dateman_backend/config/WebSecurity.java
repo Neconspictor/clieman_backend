@@ -11,6 +11,7 @@ import de.necon.dateman_backend.service.UserDetailsServiceImpl;
 import de.necon.dateman_backend.util.ResponseWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -36,19 +37,23 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     private final UserRepository userRepository;
     private final ExceptionToMessageMapper exceptionToMessageMapper;
 
+    private final Environment env;
+
 
     public WebSecurity(MyBasicAuthenticationEntryPoint authenticationEntryPoint,
                        UserDetailsServiceImpl userDetailsService,
                        ObjectMapper objectMapper,
                        ResponseWriter responseWriter,
                        UserRepository userRepository,
-                       ExceptionToMessageMapper exceptionToMessageMapper) {
+                       ExceptionToMessageMapper exceptionToMessageMapper,
+                       Environment env) {
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.userDetailsService = userDetailsService;
         this.objectMapper = objectMapper;
         this.responseWriter = responseWriter;
         this.userRepository = userRepository;
         this.exceptionToMessageMapper = exceptionToMessageMapper;
+        this.env = env;
     }
 
 
@@ -111,8 +116,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
     @Bean
     public JWTTokenService jwtTokenService() {
-        var service = new  JWTTokenService(userRepository);
-        service.setSecret(SecurityConstants.getSecret());
+        var service = new  JWTTokenService(userRepository, env);
         return service;
     }
 }

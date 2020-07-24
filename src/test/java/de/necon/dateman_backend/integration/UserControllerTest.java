@@ -1,5 +1,6 @@
 package de.necon.dateman_backend.integration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.store.FolderException;
 import de.necon.dateman_backend.BaseControllerTest;
 import de.necon.dateman_backend.config.ServiceErrorMessages;
@@ -14,12 +15,16 @@ import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.network.TokenDto;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
 
+import javax.persistence.EntityManager;
 import java.io.StringWriter;
 import java.util.Date;
 
@@ -27,9 +32,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @ActiveProfiles("test")
-public class UserControllerTest extends BaseControllerTest {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+public class UserControllerTest {
 
     @Autowired PasswordEncoder encoder;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Autowired
+    MockMvc mvc;
 
     @Autowired
     Environment env;
@@ -67,10 +80,10 @@ public class UserControllerTest extends BaseControllerTest {
     }
 
     @BeforeEach
-    @Override
+    //@Override
     public void setup() throws FolderException {
 
-        super.setup();
+        //super.setup();
 
         disabledUser = new User("test@email.com",
                 encoder.encode(disabledUserPassword), "test", false);

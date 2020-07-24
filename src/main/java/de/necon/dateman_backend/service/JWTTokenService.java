@@ -7,6 +7,8 @@ import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.UserRepository;
 import org.javatuples.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import java.util.Date;
 
@@ -20,11 +22,13 @@ public class JWTTokenService {
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String HEADER_STRING = "Authorization";
 
-    private String secret = SecurityConstants.getSecret();
+    private String secret;
     private final UserRepository userRepository;
 
-    public JWTTokenService(UserRepository userRepository) {
+    public JWTTokenService(UserRepository userRepository,
+            Environment env) {
         this.userRepository = userRepository;
+        this.secret = SecurityConstants.getSecret(env);
     }
 
     public String createToken(User user) {
@@ -60,5 +64,9 @@ public class JWTTokenService {
 
     public void setSecret(String secret) {
         this.secret = secret;
+    }
+
+    public String getSecret() {
+        return secret;
     }
 }

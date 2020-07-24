@@ -2,6 +2,7 @@ package de.necon.dateman_backend.integration;
 
 import de.necon.dateman_backend.config.RepositoryConfig;
 import de.necon.dateman_backend.exception.ServiceError;
+import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
 import de.necon.dateman_backend.network.RegisterUserDto;
@@ -17,18 +18,28 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
+@TestExecutionListeners(mergeMode =
+        TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS,
+        listeners = {ResetDatabaseTestExecutionListener.class}
+)
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@Transactional
 public class UserServiceTest {
 
     @Autowired
@@ -46,8 +57,15 @@ public class UserServiceTest {
     @BeforeEach
     public void setup() {
 
-        clientRepository.deleteAll();
-        userRepository.deleteAll();
+//        clientRepository.deleteAll();
+//        clientRepository.flush();
+//        tokenRepository.deleteAll();
+//        tokenRepository.flush();
+//        userRepository.deleteAll();
+//        userRepository.flush();
+
+        //entityManager.clear();
+        //entityManager.flush();
     }
 
 
