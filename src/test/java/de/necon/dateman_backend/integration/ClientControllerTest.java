@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.unit;
+package de.necon.dateman_backend.integration;
 
 import com.icegreen.greenmail.store.FolderException;
 import de.necon.dateman_backend.BaseControllerTest;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @ActiveProfiles("test")
-public class ClientControllerUnit extends BaseControllerTest {
+public class ClientControllerTest extends BaseControllerTest {
 
     @Autowired PasswordEncoder encoder;
 

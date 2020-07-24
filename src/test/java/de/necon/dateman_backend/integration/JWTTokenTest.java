@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.unit;
+package de.necon.dateman_backend.integration;
 
 import de.necon.dateman_backend.BaseControllerTest;
 import de.necon.dateman_backend.model.User;
@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class JWTTokenUnit extends BaseControllerTest {
+public class JWTTokenTest extends BaseControllerTest {
 
     @Autowired
     private JWTTokenService tokenService;

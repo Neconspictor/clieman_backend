@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-public class SecurityIntegration extends BaseControllerTest {
+public class SecurityTest extends BaseControllerTest {
 
     @Test
     public void privateEndpointsNeedAuthentication() throws Exception {
