@@ -4,6 +4,7 @@ import com.icegreen.greenmail.store.FolderException;
 import de.necon.dateman_backend.config.ServiceErrorMessages;
 import de.necon.dateman_backend.network.ErrorListDto;
 import de.necon.dateman_backend.network.LoginDto;
+import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.extensions.TestSmtpServer;
@@ -34,6 +35,9 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    ClientRepository clientRepository;
 
     @Autowired
     VerificationTokenRepository tokenRepository;
@@ -72,8 +76,9 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
         enabledUser = new User("test2@email.com",
                 encoder.encode(enabledUserPassword), null, true);
 
-        userRepository.deleteAll();
+        clientRepository.deleteAll();
         tokenRepository.deleteAll();
+        userRepository.deleteAll();
         testSmtpServer.reset();
     }
 
@@ -307,7 +312,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
     private MockHttpServletResponse confirmUser(TokenDto tokenDto) throws Exception {
         var writer = new StringWriter();
         objectMapper.writeValue(writer, tokenDto);
-        return mvc.perform(post("/confirmUser").contentType("application/json")
+        return mvc.perform(post("/public/confirmUser").secure(true).contentType("application/json")
                 .content(writer.toString())).andReturn().getResponse();
     }
 
@@ -315,7 +320,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
     private MockHttpServletResponse login(LoginDto loginDto) throws Exception {
         var writer = new StringWriter();
         objectMapper.writeValue(writer, loginDto);
-        return mvc.perform(post("/login").contentType("application/json")
+        return mvc.perform(post("/public/login").secure(true).contentType("application/json")
                 .content(writer.toString())).andReturn().getResponse();
     }
 
@@ -323,7 +328,7 @@ public class UserControllerIntegrationTest extends BaseControllerIntegrationTest
     private MockHttpServletResponse registerUser(RegisterUserDto registerUserDto) throws Exception {
         var writer = new StringWriter();
         objectMapper.writeValue(writer, registerUserDto);
-        return mvc.perform(post("/register").contentType("application/json")
+        return mvc.perform(post("/public/register").secure(true).contentType("application/json")
                 .content(writer.toString())).andReturn().getResponse();
     }
 }

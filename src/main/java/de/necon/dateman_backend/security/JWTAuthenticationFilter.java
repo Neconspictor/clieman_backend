@@ -39,6 +39,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                    UserRepository userRepository,
                                    ResponseWriter responseWriter,
                                    ExceptionToMessageMapper exceptionToMessageMapper) {
+        super();
         this.objectMapper = objectMapper;
         this.userRepository = userRepository;
         this.responseWriter = responseWriter;

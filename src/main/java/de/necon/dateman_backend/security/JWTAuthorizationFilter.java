@@ -22,12 +22,12 @@ import static de.necon.dateman_backend.config.SecurityConstants.*;
 
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
+    @Autowired
     UserService userService;
 
 
-    public JWTAuthorizationFilter(AuthenticationManager authenticationManager,  UserService userService) {
+    public JWTAuthorizationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
-        this.userService = userService;
     }
 
     @Override

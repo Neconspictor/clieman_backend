@@ -32,8 +32,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     UserRepository userRepository;
 
-    @Autowired
-    ClientRepository clientRepository;
+   // @Autowired
+   // ClientRepository clientRepository;
 
     @Autowired
     private VerificationTokenRepository tokenRepository;
@@ -119,7 +119,8 @@ public class UserServiceImpl implements UserService {
             throw new ServiceError(USER_NOT_FOUND);
         }
 
-        return clientRepository.findAllByUser(user);
+        return null;
+       // return clientRepository.findAllByUser(user);
     }
 
     @Override

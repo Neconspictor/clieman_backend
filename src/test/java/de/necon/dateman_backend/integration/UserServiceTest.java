@@ -5,6 +5,7 @@ import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
 import de.necon.dateman_backend.network.RegisterUserDto;
+import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.service.UserService;
@@ -37,10 +38,15 @@ public class UserServiceTest {
     private UserRepository userRepository;
 
     @Autowired
+    private ClientRepository clientRepository;
+
+    @Autowired
     private VerificationTokenRepository tokenRepository;
 
     @BeforeEach
     public void setup() {
+
+        clientRepository.deleteAll();
         userRepository.deleteAll();
     }
 

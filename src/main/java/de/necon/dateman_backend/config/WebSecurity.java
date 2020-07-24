@@ -37,9 +37,6 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     private final UserRepository userRepository;
     private final ExceptionToMessageMapper exceptionToMessageMapper;
 
-    @Autowired
-    UserService userService;
-
 
     public WebSecurity(MyBasicAuthenticationEntryPoint authenticationEntryPoint,
                        UserDetailsServiceImpl userDetailsService,
@@ -60,8 +57,9 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     public JWTAuthenticationFilter authenticationFilter() throws Exception {
         JWTAuthenticationFilter authenticationFilter
                 = new JWTAuthenticationFilter(objectMapper, userRepository, responseWriter, exceptionToMessageMapper);
-        authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login", "POST"));
+        authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/public/login", "POST"));
         authenticationFilter.setAuthenticationManager(authenticationManagerBean());
+        authenticationFilter.setFilterProcessesUrl("/public/login");
         return authenticationFilter;
     }
 
@@ -69,15 +67,13 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.cors().and().csrf().disable().authorizeRequests()
-                .antMatchers("/login").permitAll()
-                .antMatchers("/register").permitAll()
-                .antMatchers("/confirmUser").permitAll()
+                .antMatchers("/public/**").permitAll()
                 .anyRequest().authenticated()
 
                 .and()
                 .addFilterBefore(
                         authenticationFilter(), JWTAuthenticationFilter.class)
-                .addFilter(new JWTAuthorizationFilter(authenticationManager(), userService))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager()))
 
                 // this disables session creation on Spring Security
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

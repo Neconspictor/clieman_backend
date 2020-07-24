@@ -54,11 +54,6 @@ public class UserController {
         this.encoder = encoder;
     }
 
-    @GetMapping("/users")
-    List<User> users() {
-        return repository.findAll();
-    }
-
     @GetMapping("/clients")
     List<Client> getClients() {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -69,7 +64,7 @@ public class UserController {
         return result;
     }
 
-    @PostMapping("/register")
+    @PostMapping("/public/register")
     public RegisterResponse register(@RequestBody RegisterUserDto userDto, final HttpServletResponse response) throws IOException {
 
         User savedUser = null;
@@ -86,7 +81,7 @@ public class UserController {
         return responseMessage;
     }
 
-    @PostMapping("/confirmUser")
+    @PostMapping("/public/confirmUser")
     public void confirmUser(@RequestBody TokenDto tokenDto, final HttpServletResponse response) throws IOException {
 
         var token = tokenDto.getToken();
