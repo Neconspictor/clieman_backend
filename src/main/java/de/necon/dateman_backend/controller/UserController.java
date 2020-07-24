@@ -1,21 +1,16 @@
 package de.necon.dateman_backend.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.exception.ServiceError;
-import de.necon.dateman_backend.model.Client;
+import de.necon.dateman_backend.network.RegisterResponseDto;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.network.TokenDto;
-import de.necon.dateman_backend.service.EmailService;
 import de.necon.dateman_backend.service.OnRegistrationCompleteEvent;
 import de.necon.dateman_backend.model.User;
-import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.service.UserService;
 import de.necon.dateman_backend.util.ResponseWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -26,14 +21,9 @@ import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 
 @RestController
 public class UserController {
-    private final UserRepository repository;
 
     private final ResponseWriter responseWriter;
-    private final EmailService emailService;
     private final UserService userService;
-
-    private final ObjectMapper objectMapper;
-    private final PasswordEncoder encoder;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -41,31 +31,14 @@ public class UserController {
     @Autowired
     private Environment env;
 
-    public UserController(UserRepository repository,
-                          ResponseWriter responseWriter,
-                          EmailService emailService,
-                          UserService userService, ObjectMapper objectMapper,
-                          PasswordEncoder encoder) {
-        this.repository = repository;
+    public UserController(ResponseWriter responseWriter,
+                          UserService userService) {
         this.responseWriter = responseWriter;
-        this.emailService = emailService;
         this.userService = userService;
-        this.objectMapper = objectMapper;
-        this.encoder = encoder;
-    }
-
-    @GetMapping("/clients")
-    List<Client> getClients() {
-        var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
-        var result =  userService.getClientsOfUser(user);
-        result.forEach(c->{
-            c.setUser(null);
-        });
-        return result;
     }
 
     @PostMapping("/public/register")
-    public RegisterResponse register(@RequestBody RegisterUserDto userDto, final HttpServletResponse response) throws IOException {
+    public RegisterResponseDto register(@RequestBody RegisterUserDto userDto, final HttpServletResponse response) throws IOException {
 
         User savedUser = null;
         try {
@@ -77,7 +50,7 @@ public class UserController {
         }
 
         if (savedUser == null) return null;
-        var responseMessage = new RegisterResponse(savedUser.getEmail(), savedUser.getUsername());
+        var responseMessage = new RegisterResponseDto(savedUser.getEmail(), savedUser.getUsername());
         return responseMessage;
     }
 
@@ -95,21 +68,6 @@ public class UserController {
             userService.verifyUserAccount(tokenDto.getToken());
         } catch(ServiceError e) {
             responseWriter.writeJSONErrors(e.getErrors(), response);
-        }
-    }
-
-    public static class RegisterResponse {
-        public final String email;
-        public final String username;
-
-        public RegisterResponse(String email, String username) {
-            this.email = email;
-            this.username = username;
-        }
-
-        @Override
-        public String toString() {
-            return "{" + "email: " + email + ", username: " + username + "}";
         }
     }
 }
