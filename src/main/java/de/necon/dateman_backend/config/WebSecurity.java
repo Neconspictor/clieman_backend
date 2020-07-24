@@ -6,6 +6,7 @@ import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.security.JWTAuthenticationFilter;
 import de.necon.dateman_backend.security.JWTAuthorizationFilter;
 import de.necon.dateman_backend.security.MyBasicAuthenticationEntryPoint;
+import de.necon.dateman_backend.service.JWTTokenService;
 import de.necon.dateman_backend.service.UserDetailsServiceImpl;
 import de.necon.dateman_backend.util.ResponseWriter;
 import org.springframework.context.annotation.Bean;
@@ -54,7 +55,12 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     @Bean
     public JWTAuthenticationFilter authenticationFilter() throws Exception {
         JWTAuthenticationFilter authenticationFilter
-                = new JWTAuthenticationFilter(objectMapper, userRepository, responseWriter, exceptionToMessageMapper);
+                = new JWTAuthenticationFilter(objectMapper,
+                userRepository,
+                responseWriter,
+                exceptionToMessageMapper,
+                jwtTokenService());
+
         authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/public/login", "POST"));
         authenticationFilter.setAuthenticationManager(authenticationManagerBean());
         authenticationFilter.setFilterProcessesUrl("/public/login");
@@ -71,7 +77,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterBefore(
                         authenticationFilter(), JWTAuthenticationFilter.class)
-                .addFilter(new JWTAuthorizationFilter(authenticationManager(), userRepository))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager(), userRepository, jwtTokenService()))
 
                 // this disables session creation on Spring Security
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -101,5 +107,12 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public JWTTokenService jwtTokenService() {
+        var service = new  JWTTokenService(userRepository);
+        service.setSecret(SecurityConstants.getSecret());
+        return service;
     }
 }

@@ -1,11 +1,9 @@
 package de.necon.dateman_backend.security;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import de.necon.dateman_backend.config.SecurityConstants;
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.service.JWTTokenService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,26 +16,26 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static de.necon.dateman_backend.config.SecurityConstants.*;
-import static de.necon.dateman_backend.config.ServiceErrorMessages.USER_NOT_FOUND;
-
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
     private final UserRepository userRepository;
+    private final JWTTokenService tokenService;
 
 
-    public JWTAuthorizationFilter(AuthenticationManager authenticationManager, UserRepository userRepository) {
+    public JWTAuthorizationFilter(AuthenticationManager authenticationManager,
+                                  UserRepository userRepository, JWTTokenService tokenService) {
         super(authenticationManager);
         this.userRepository = userRepository;
+        this.tokenService = tokenService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest req,
                                     HttpServletResponse res,
                                     FilterChain chain) throws IOException, ServletException {
-        String header = req.getHeader(HEADER_STRING);
+        String header = req.getHeader(tokenService.HEADER_STRING);
 
-        if (header == null || !header.startsWith(TOKEN_PREFIX)) {
+        if (header == null || !header.startsWith(tokenService.TOKEN_PREFIX)) {
             chain.doFilter(req, res);
             return;
         }
@@ -49,31 +47,19 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
-        String token = request.getHeader(HEADER_STRING);
-        final String secret = SecurityConstants.getSecret();
+        String token = request.getHeader(tokenService.HEADER_STRING);
 
-        if (token != null) {
-            // parse the token.
-            String user = JWT.require(Algorithm.HMAC512(secret.getBytes()))
-                    .build()
-                    .verify(token.replace(TOKEN_PREFIX, ""))
-                    .getSubject();
+        if (token == null) { return null; }
 
-            //check that user exists
-            try {
-                User storedUser = userRepository.findByEmail(user).get();
+        try {
+            User user = tokenService.getFromToken(token);
 
-                if (storedUser == null) throw new ServiceError(USER_NOT_FOUND);
-
-                user = storedUser.getEmail();
-                var result = new UsernamePasswordAuthenticationToken(storedUser.getEmail(), null, new ArrayList<>());
-                result.setDetails(storedUser);
-                return result;
-            }catch (ServiceError e) {
-            }
-
-            return null;
+            var result = new UsernamePasswordAuthenticationToken(user.getEmail(), null, new ArrayList<>());
+            result.setDetails(user);
+            return result;
+        }catch (ServiceError e) {
         }
+
         return null;
     }
 }

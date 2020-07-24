@@ -1,11 +1,12 @@
 package de.necon.dateman_backend.security;
 
-import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.config.SecurityConstants;
 import de.necon.dateman_backend.network.ExceptionToMessageMapper;
 import de.necon.dateman_backend.network.LoginDto;
+import de.necon.dateman_backend.network.LoginResponseDto;
 import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.service.JWTTokenService;
 import de.necon.dateman_backend.util.ResponseWriter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,11 +22,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
-import static de.necon.dateman_backend.config.SecurityConstants.*;
 import static de.necon.dateman_backend.config.ServiceErrorMessages.INVALID_LOGIN;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -35,15 +33,19 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final ExceptionToMessageMapper exceptionToMessageMapper;
 
+    private final JWTTokenService tokenService;
+
     public JWTAuthenticationFilter(ObjectMapper objectMapper,
                                    UserRepository userRepository,
                                    ResponseWriter responseWriter,
-                                   ExceptionToMessageMapper exceptionToMessageMapper) {
+                                   ExceptionToMessageMapper exceptionToMessageMapper,
+                                   JWTTokenService tokenService) {
         super();
         this.objectMapper = objectMapper;
         this.userRepository = userRepository;
         this.responseWriter = responseWriter;
         this.exceptionToMessageMapper = exceptionToMessageMapper;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -79,13 +81,11 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         var user = optionalUser.get();
 
 
-        String token = JWT.create()
-                .withSubject(email)
-                .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .sign(HMAC512(secret.getBytes()));
-        res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
+        String token = tokenService.createToken(user);
+        var tokenHeader = tokenService.createTokenHeader(token);
+        res.addHeader(tokenHeader.getValue0(), tokenHeader.getValue1());
 
-        LoginResponse body = new LoginResponse(user.getEmail(), user.getUsername());
+        LoginResponseDto body = new LoginResponseDto(user.getEmail(), user.getUsername());
         objectMapper.writeValue(res.getWriter(), body);
 
         super.successfulAuthentication(req, res, chain, auth);
@@ -104,14 +104,4 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     }
 
 
-    private static class LoginResponse {
-        public final String email;
-        public final String username;
-
-
-        public LoginResponse(String email, String username) {
-            this.email = email;
-            this.username = username;
-        }
-    }
 }

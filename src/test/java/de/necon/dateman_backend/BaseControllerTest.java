@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.integration;
+package de.necon.dateman_backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.store.FolderException;
@@ -14,12 +14,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-public class BaseControllerIntegrationTest {
+public class BaseControllerTest {
 
     @Autowired
     protected WebApplicationContext context;

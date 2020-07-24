@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.integration;
 
 import com.icegreen.greenmail.store.FolderException;
+import de.necon.dateman_backend.BaseControllerTest;
 import de.necon.dateman_backend.config.ServiceErrorMessages;
 import de.necon.dateman_backend.network.ErrorListDto;
 import de.necon.dateman_backend.network.LoginDto;
@@ -26,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @ActiveProfiles("test")
-public class UserControllerIntegrationTest extends BaseControllerIntegrationTest {
+public class UserControllerTest extends BaseControllerTest {
 
     @Autowired PasswordEncoder encoder;
 
