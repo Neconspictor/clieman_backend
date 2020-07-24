@@ -41,15 +41,6 @@ public interface UserService {
      */
     void verifyUserAccount(String verificationToken) throws ServiceError;
 
-
-    /**
-     * Provides the clients created by the given user.
-     * @param user The user for who we want retrive the clients.
-     * @return The clients of the user. The list is never be null.
-     * @throws ServiceError If 'user' is null, if 'user' is not stored in the database or an io error occurs.
-     */
-    List<Client> getClientsOfUser(User user) throws ServiceError;
-
     /**
      * Gets a user by its linked verification token.
      * @param verificationToken The token

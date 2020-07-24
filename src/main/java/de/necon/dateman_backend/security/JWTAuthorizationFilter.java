@@ -4,8 +4,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import de.necon.dateman_backend.config.SecurityConstants;
 import de.necon.dateman_backend.exception.ServiceError;
-import de.necon.dateman_backend.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,15 +19,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static de.necon.dateman_backend.config.SecurityConstants.*;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.USER_NOT_FOUND;
 
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
-    @Autowired
-    UserService userService;
+    private final UserRepository userRepository;
 
 
-    public JWTAuthorizationFilter(AuthenticationManager authenticationManager) {
+    public JWTAuthorizationFilter(AuthenticationManager authenticationManager, UserRepository userRepository) {
         super(authenticationManager);
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -60,7 +61,10 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
             //check that user exists
             try {
-                var storedUser = userService.getUserByPrincipal(user);
+                User storedUser = userRepository.findByEmail(user).get();
+
+                if (storedUser == null) throw new ServiceError(USER_NOT_FOUND);
+
                 user = storedUser.getEmail();
                 var result = new UsernamePasswordAuthenticationToken(storedUser.getEmail(), null, new ArrayList<>());
                 result.setDetails(storedUser);

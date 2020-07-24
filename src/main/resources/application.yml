@@ -44,12 +44,12 @@ spring:
 
 server:
 
-  #ssl:
-  #  key-store: classpath:dateman_backend_keystore.p12
-  #  key-store-password: ${dateman.DATEMAN_KEYSTORE_PASSWORD}
-  #  key-store-type: pkcs12
-  #  key-alias: dateman-key
-  #  key-password: ${dateman.DATEMAN_KEYSTORE_PASSWORD}
+  ssl:
+    key-store: classpath:dateman_backend_keystore.p12
+    key-store-password: ${dateman.DATEMAN_KEYSTORE_PASSWORD}
+    key-store-type: pkcs12
+    key-alias: dateman-key
+    key-password: ${dateman.DATEMAN_KEYSTORE_PASSWORD}
 
   port : 8443
 

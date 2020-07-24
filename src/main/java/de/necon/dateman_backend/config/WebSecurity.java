@@ -7,9 +7,7 @@ import de.necon.dateman_backend.security.JWTAuthenticationFilter;
 import de.necon.dateman_backend.security.JWTAuthorizationFilter;
 import de.necon.dateman_backend.security.MyBasicAuthenticationEntryPoint;
 import de.necon.dateman_backend.service.UserDetailsServiceImpl;
-import de.necon.dateman_backend.service.UserService;
 import de.necon.dateman_backend.util.ResponseWriter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -73,7 +71,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterBefore(
                         authenticationFilter(), JWTAuthenticationFilter.class)
-                .addFilter(new JWTAuthorizationFilter(authenticationManager()))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager(), userRepository))
 
                 // this disables session creation on Spring Security
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

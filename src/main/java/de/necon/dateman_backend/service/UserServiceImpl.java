@@ -1,11 +1,9 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
-import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
-import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.util.MessageExtractor;
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Service;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
 import java.util.Date;
-import java.util.List;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 
@@ -31,9 +28,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     UserRepository userRepository;
-
-   // @Autowired
-   // ClientRepository clientRepository;
 
     @Autowired
     private VerificationTokenRepository tokenRepository;
@@ -106,21 +100,6 @@ public class UserServiceImpl implements UserService {
 
         tokenRepository.delete(token);
         userRepository.saveAndFlush(user);
-    }
-
-    @Override
-    public List<Client> getClientsOfUser(User user) throws ServiceError {
-
-        if (user == null) {
-            throw new ServiceError(NO_USER);
-        }
-
-        if (!userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new ServiceError(USER_NOT_FOUND);
-        }
-
-        return null;
-       // return clientRepository.findAllByUser(user);
     }
 
     @Override
