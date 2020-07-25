@@ -49,16 +49,16 @@ public class ClientServiceTest {
         var user2 = userRepository.save(new User("test2@email.com", "password", "test2", true));
 
         clientRepository.save(new Client("address", new Date(),
-                "client1@email.com", "forename", "client1", Sex.FEMALE, user1));
+                "client1@email.com", "forename", "client1", "client1", Sex.FEMALE, user1));
         clientRepository.save(new Client("address", new Date(),
-                "client2@email.com", "forename", "client2", Sex.FEMALE, user1));
+                "client2@email.com", "forename", "client2", "client2", Sex.FEMALE, user1));
         clientRepository.save(new Client("address", new Date(),
-                "client3@email.com", "forename", "client3", Sex.FEMALE, user1));
+                "client3@email.com", "forename", "client3", "client3", Sex.FEMALE, user1));
 
         clientRepository.save(new Client("address", new Date(),
-                "client5@email.com", "forename", "client4", Sex.FEMALE, user2));
+                "client5@email.com", "forename", "client4", "client4", Sex.FEMALE, user2));
         clientRepository.save(new Client("address", new Date(),
-                "client5@email.com", "forename", "client5", Sex.FEMALE, user2));
+                "client5@email.com", "forename", "client5", "client5", Sex.FEMALE, user2));
 
         var clients = clientService.getClientsOfUser(user1);
         Assertions.assertTrue(clients.size() == 3);
