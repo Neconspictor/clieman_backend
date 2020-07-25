@@ -44,6 +44,7 @@ public class LoadDatabase {
                     date,
                     "client@email.com",
                     "forename",
+                    "client1",
                     "family name",
                     Sex.DIVERSE,
                     testUser);
@@ -53,7 +54,8 @@ public class LoadDatabase {
             log.info("Preloading " + repository.save(new User("schlomo@testimonial.de", encoder.encode("sleepAbitAndRest"), "Schlomo", true)));
             log.info("Preloading " + testUser);
             log.info("Preloading " + clientRepository.save(client));
-            log.info("Preloading " + clientRepository.save(new Client(null, null, null, null, null, null, testUser)));
+            log.info("Preloading " + clientRepository.save(new Client(null, null, null, null, "client2", null, null, repository.findByUsername("Pumuckl").get())));
+            log.info("Preloading " + clientRepository.save(new Client("address of client 3", new Date(), "client3@email.com", "forename of client 3", "client2", "name of client 3", Sex.MALE, testUser)));
 
         };
     }

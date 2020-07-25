@@ -3,6 +3,8 @@ package de.necon.dateman_backend.repository;
 import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -19,6 +21,6 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
      * @return guaranteed to be not {@literal null}. Can be empty.
      * @throws IllegalArgumentException in case the given {@link User} is {@literal null}.
      */
-    List<Client> findAllByUser(User user);
-
+    @Query("SELECT c FROM Client c WHERE c.id.user = :user")
+    List<Client> findAllByUser(@Param("user")User user);
 }

@@ -28,9 +28,8 @@ public class Client implements Serializable  {
     @Basic
     private String forename;
 
-    @Id
-    @GeneratedValue
-    private Long id;
+    @EmbeddedId
+    private ID id;
 
     @Basic
     private String name;
@@ -38,25 +37,22 @@ public class Client implements Serializable  {
     @Enumerated(EnumType.STRING)
     private Sex sex;
 
-    @NotNull(message=NO_USER)
-    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false, name = "user_id")
-    private User user;
-
-    private static final long serialVersionUID = 0L;
+    private static final long serialVersionUID = 1L;
 
     public Client() {
-
+        this.id = new ID();
     }
 
-    public Client(String address, Date birthday, String email, String forename, String name, Sex sex, User user) {
+    public Client(String address, Date birthday, String email, String forename, String id, String name, Sex sex, User user) {
         this.address = address;
         this.birthday = birthday;
         this.email = email;
         this.forename = forename;
         this.name = name;
         this.sex = sex;
-        this.user = user;
+        this.id = new ID();
+        this.id.id = id;
+        this.id.user = user;
     }
 
     /**
@@ -111,12 +107,12 @@ public class Client implements Serializable  {
     /**
      *  @return The id of the client.
      */
-    public Long getId() {
-        return id;
+    public String getId() {
+        return id.getId();
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(String id) {
+        this.id.setId(id);
     }
 
     /**
@@ -135,11 +131,11 @@ public class Client implements Serializable  {
      * @return The user the client belongs to.
      */
     public User getUser() {
-        return user;
+        return id.getUser();
     }
 
     public void setUser(User user) {
-        this.user = user;
+        this.id.setUser(user);
     }
 
     @Override
@@ -153,17 +149,61 @@ public class Client implements Serializable  {
             birthdayStr = formatter.format(birthday);
         }
 
+        String user = null;
+
+        if (this.id.getUser() != null) user = this.id.getUser().getEmail();
+
 
         return "Client{" +
                 "address='" + address + '\'' +
                 ", birthday=" + birthdayStr +
                 ", email='" + email + '\'' +
                 ", forename='" + forename + '\'' +
-                ", id=" + id +
+                ", id=" + id.getId() +
                 ", name='" + name + '\'' +
                 ", sex=" + sex +
-                //NOTE: user mustn't be null, so it is safe to access the email property!
-                ", user=" + user.getEmail() +
+                ", user=" + user +
                 '}';
+    }
+
+    @Embeddable
+    public static class ID implements Serializable {
+        private String id;
+
+        @NotNull(message=NO_USER)
+        @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
+        @JoinColumn(nullable = false, name = "user_id_embedded")
+        private User user;
+
+
+        public ID() {
+
+        }
+
+        private static final long serialVersionUID = 2L;
+
+        public User getUser() {
+            return user;
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
+
+        @Override
+        public String toString() {
+            return "ID{" +
+                    "id='" + id + '\'' +
+                    ", User=" + user.getId() +
+                    '}';
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
     }
 }
