@@ -107,11 +107,11 @@ public class Client implements Serializable  {
     /**
      *  @return The id of the client.
      */
-    public String getId() {
+    public String getLocalId() {
         return id.getId();
     }
 
-    public void setId(String id) {
+    public void setLocalId(String id) {
         this.id.setId(id);
     }
 
@@ -164,6 +164,14 @@ public class Client implements Serializable  {
                 ", sex=" + sex +
                 ", user=" + user +
                 '}';
+    }
+
+    public ID getId() {
+        return id;
+    }
+
+    public void setId(ID id) {
+        this.id = id;
     }
 
     @Embeddable

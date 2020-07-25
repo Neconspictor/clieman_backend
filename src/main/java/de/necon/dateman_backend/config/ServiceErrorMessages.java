@@ -22,4 +22,8 @@ public class ServiceErrorMessages {
     public static final String NO_USER = "NoUser";
     public static final String NO_EXPIRY_DATE = "NoExpiryDate";
     public static final String USER_IS_LINKED_TO_ENTITIES = "UserIsLinkedToEntities";
+
+    public static final String CLIENT_NOT_FOUND = "ClientNotFound";
+    public static final String CLIENT_ALREADY_EXISTS = "ClientAlreadyExists";
+    public static final String CLIENT_CHANGING_USER_NOT_ALLOWED = "ClientChangingUserNotAllowed";
 }
