@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -176,6 +178,9 @@ public class Client implements Serializable  {
 
     @Embeddable
     public static class ID implements Serializable {
+        @NotNull
+        @NotBlank
+        @NotEmpty
         private String id;
 
         @NotNull(message=NO_USER)

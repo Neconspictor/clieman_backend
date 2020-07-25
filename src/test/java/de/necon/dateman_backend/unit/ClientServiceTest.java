@@ -18,8 +18,7 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.Date;
 
-import static de.necon.dateman_backend.config.ServiceErrorMessages.NO_USER;
-import static de.necon.dateman_backend.config.ServiceErrorMessages.USER_NOT_FOUND;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 
 @DataJpaTest
 public class ClientServiceTest {
@@ -88,5 +87,130 @@ public class ClientServiceTest {
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), NO_USER);
+    }
+
+
+    @Test
+    public void addClient_NullNotAllowed() {
+        Client client = null;
+
+        Asserter.assertException(NullPointerException.class).isThrownBy(()-> {
+            clientService.addClient(client);
+        });
+    }
+
+    @Test
+    public void addClient_InvalidClientNoUser() {
+        Client client = new Client(null, null, null, null,
+                "clientID", null, Sex.DIVERSE, null);
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.addClient(client);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void addClient_InvalidClientNoID() {
+        var user = userRepository.save(new User("test@email.com", "password",
+                "test", true));
+        Client client = new Client(null, null, null, null,
+                null, null, Sex.DIVERSE, user);
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.addClient(client);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_INVLAID_ID);
+    }
+
+    @Test
+    public void addClient_InvalidClientEmptyID() {
+        var user = userRepository.save(new User("test@email.com", "password",
+                "test", true));
+        Client client = new Client(null, null, null, null,
+                "", null, Sex.DIVERSE, user);
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.addClient(client);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_INVLAID_ID);
+    }
+
+
+    @Test
+    public void addClient_ValidClient() {
+        var user = userRepository.save(new User("test@email.com", "password",
+                "test", true));
+        Client client = new Client(null, null, null, null,
+                "id", null, Sex.DIVERSE, user);
+
+        clientService.addClient(client);
+    }
+
+
+    @Test
+    public void addClient_DisabledUserNotAllowed() {
+        var user = userRepository.save(new User("test@email.com", "password",
+                "test", false));
+        Client client = new Client(null, null, null, null,
+                "id", null, Sex.DIVERSE, user);
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.addClient(client);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_IS_DISABLED);
+    }
+
+    @Test
+    public void addClient_NotStoredUserNotAllowed() {
+        var user = new User("test@email.com", "password",
+                "test", true);
+        Client client = new Client(null, null, null, null,
+                "id", null, Sex.DIVERSE, user);
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.addClient(client);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+
+    @Test
+    public void addClient_AlreadyExistingPrimaryKeyNotAllowed() {
+        var user = userRepository.save(new User("test@email.com", "password",
+                "test", true));
+        String id = "id";
+
+        var client = new Client(null, null, null, null,
+                id, null, Sex.DIVERSE, user);
+        var client2 = new Client("address", null, null, null,
+                id, "client 2", Sex.DIVERSE, user);
+
+        clientService.addClient(client);
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.addClient(client2);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_ALREADY_EXISTS);
+    }
+
+    @Test
+    public void addClient_SameUserDifferentIdsAllowed() {
+        var user = userRepository.save(new User("test@email.com", "password",
+                "test", true));
+
+        var client = new Client(null, null, null, null,
+                "id1", null, Sex.DIVERSE, user);
+        var client2 = new Client("address", null, null, null,
+                "id2", "client 2", Sex.DIVERSE, user);
+
+        clientService.addClient(client);
+        clientService.addClient(client2);
     }
 }

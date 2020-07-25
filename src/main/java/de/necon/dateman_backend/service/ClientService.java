@@ -3,7 +3,9 @@ package de.necon.dateman_backend.service;
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.User;
+import org.springframework.dao.DataIntegrityViolationException;
 
+import javax.validation.ConstraintViolationException;
 import java.util.List;
 
 public interface ClientService {
@@ -20,7 +22,10 @@ public interface ClientService {
      * Adds a not yet added client to the database.
      * @param client The client to be added.
      * @throws ServiceError If the client is not valid or another client with the same (id, user) primary key
-     *  exists already.
+     *  exists already. Is also thrown if the id of the client is blank.
+     * @throws NullPointerException If client is null
+     * @throws ConstraintViolationException If client is not valid
+     * @throws DataIntegrityViolationException If client is not valid
      */
     void addClient(Client client) throws ServiceError;
 
@@ -30,6 +35,8 @@ public interface ClientService {
      * @param id Identifies the stored client to be updated.
      * @throws ServiceError If 'id' does not match a stored client or 'client' is not valid.
      * The user of 'id' and the user of the client must match, too. Otherwise this exception is thrown, too.
+     *
+     * @throws NullPointerException If client or id is null.
      */
     void updateClient(Client client, Client.ID id) throws ServiceError;
 
@@ -37,6 +44,8 @@ public interface ClientService {
      * Removes a client from the database.
      * @param client The client to remove.
      * @throws ServiceError If the client is not stored in the database.
+     *
+     * @throws NullPointerException If client is null.
      */
     void removeClient(Client client) throws ServiceError;
 }
