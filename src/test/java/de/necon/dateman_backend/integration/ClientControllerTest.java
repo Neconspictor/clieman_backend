@@ -66,7 +66,7 @@ public class ClientControllerTest {
 
     private MockHttpServletResponse getClients(String token) throws Exception {
         var header = JWTTokenService.createTokenHeader(token);
-        return mvc.perform(get("/clients")
+        return mvc.perform(get("/clients/getAll")
                 .header(header.getValue0(), header.getValue1())
                 .secure(true))
                 .andReturn()

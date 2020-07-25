@@ -17,7 +17,7 @@ public class ClientController {
         this.clientService = clientService;
     }
 
-    @GetMapping("/clients")
+    @GetMapping("/clients/getAll")
     List<Client> getClients() {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
         var result =  clientService.getClientsOfUser(user);
