@@ -1,14 +1,11 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
-import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * Service for interacting with users.

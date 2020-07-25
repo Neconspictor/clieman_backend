@@ -1,7 +1,6 @@
 package de.necon.dateman_backend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.necon.dateman_backend.config.SecurityConstants;
 import de.necon.dateman_backend.network.ExceptionToMessageMapper;
 import de.necon.dateman_backend.network.LoginDto;
 import de.necon.dateman_backend.network.LoginResponseDto;

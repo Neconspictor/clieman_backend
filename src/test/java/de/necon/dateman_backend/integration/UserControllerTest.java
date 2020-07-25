@@ -2,7 +2,6 @@ package de.necon.dateman_backend.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.store.FolderException;
-import de.necon.dateman_backend.BaseControllerTest;
 import de.necon.dateman_backend.config.ServiceErrorMessages;
 import de.necon.dateman_backend.network.ErrorListDto;
 import de.necon.dateman_backend.network.LoginDto;
@@ -24,7 +23,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import javax.persistence.EntityManager;
 import java.io.StringWriter;
 import java.util.Date;
 

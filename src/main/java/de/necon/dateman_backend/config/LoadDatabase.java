@@ -16,8 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Configuration

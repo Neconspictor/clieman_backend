@@ -7,7 +7,6 @@ import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.UserRepository;
 import org.javatuples.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.util.Date;

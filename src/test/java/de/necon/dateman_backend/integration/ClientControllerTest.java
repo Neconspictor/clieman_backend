@@ -1,24 +1,15 @@
 package de.necon.dateman_backend.integration;
 
-import com.icegreen.greenmail.store.FolderException;
-import de.necon.dateman_backend.BaseControllerTest;
 import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.User;
-import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
-import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.service.JWTTokenService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,8 +27,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @AutoConfigureMockMvc
 @Transactional
 public class ClientControllerTest {
-
-    @Autowired PasswordEncoder encoder;
 
     @Autowired
     MockMvc mvc;

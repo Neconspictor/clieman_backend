@@ -6,9 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.text.Format;
 import java.text.SimpleDateFormat;
-import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.TimeZone;
 
