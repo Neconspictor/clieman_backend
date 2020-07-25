@@ -2,6 +2,7 @@ package de.necon.dateman_backend.integration;
 
 import com.icegreen.greenmail.store.FolderException;
 import de.necon.dateman_backend.BaseControllerTest;
+import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
@@ -19,14 +20,21 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @ActiveProfiles("test")
+@TestExecutionListeners(mergeMode =
+        TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS,
+        listeners = {ResetDatabaseTestExecutionListener.class}
+)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@Transactional
 public class ClientControllerTest {
 
     @Autowired PasswordEncoder encoder;
@@ -35,44 +43,11 @@ public class ClientControllerTest {
     MockMvc mvc;
 
     @Autowired
-    Environment env;
-
-    @Autowired
     UserRepository userRepository;
-
-    @Autowired
-    ClientRepository clientRepository;
-
-    @Autowired
-    VerificationTokenRepository tokenRepository;
 
     @Autowired
     JWTTokenService tokenService;
 
-
-    private User disabledUser;
-    private static final String disabledUserPassword = "password";
-    private User enabledUser;
-    private static final String enabledUserPassword = "password2";
-    private static final String wrongPassword = "wrong password";
-    private static final String notExistingUser = "not@existing.com";
-
-
-    @BeforeEach
-    //@Override
-    public void setup() throws FolderException {
-
-        //super.setup();
-
-        disabledUser = new User("test@email.com",
-                encoder.encode(disabledUserPassword), "test", false);
-        enabledUser = new User("test2@email.com",
-                encoder.encode(enabledUserPassword), null, true);
-
-        clientRepository.deleteAll();
-        tokenRepository.deleteAll();
-        userRepository.deleteAll();
-    }
 
     @Test
     public void clients_notAuthenticated() throws Exception {
@@ -82,6 +57,8 @@ public class ClientControllerTest {
 
     @Test
     public void clients_authenticated() throws Exception {
+        var enabledUser = new User("test@email.com",
+                "password", "test", true);
         userRepository.saveAndFlush(enabledUser);
         var response = getClients(tokenService.createToken(enabledUser));
         assertTrue(response.getStatus() == HttpStatus.OK.value());
