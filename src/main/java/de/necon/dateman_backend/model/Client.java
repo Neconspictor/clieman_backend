@@ -2,6 +2,8 @@ package de.necon.dateman_backend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
 import javax.validation.Valid;
@@ -179,6 +181,38 @@ public class Client implements Serializable  {
         this.id = id;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Client client = (Client) o;
+
+        return new EqualsBuilder()
+                .append(address, client.address)
+                .append(birthday, client.birthday)
+                .append(email, client.email)
+                .append(forename, client.forename)
+                .append(id, client.id)
+                .append(name, client.name)
+                .append(sex, client.sex)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(address)
+                .append(birthday)
+                .append(email)
+                .append(forename)
+                .append(id)
+                .append(name)
+                .append(sex)
+                .toHashCode();
+    }
+
     @Embeddable
     public static class ID implements Serializable {
         @NotBlank(message=CLIENT_INVLAID_ID)
@@ -192,6 +226,11 @@ public class Client implements Serializable  {
 
         public ID() {
 
+        }
+
+        public ID(String id, User user) {
+            this.id = id;
+            this.user = user;
         }
 
         private static final long serialVersionUID = 2L;
@@ -218,6 +257,28 @@ public class Client implements Serializable  {
 
         public void setId(String id) {
             this.id = id;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ID id1 = (ID) o;
+
+            return new EqualsBuilder()
+                    .append(id, id1.id)
+                    .append(user, id1.user)
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37)
+                    .append(id)
+                    .append(user)
+                    .toHashCode();
         }
     }
 }

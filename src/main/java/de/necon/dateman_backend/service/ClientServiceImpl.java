@@ -69,7 +69,7 @@ public class ClientServiceImpl implements ClientService {
 
         try {
             clientRepository.deleteById(id);
-            clientRepository.saveAndFlush(client);
+            addClient(client);
         } catch(ConstraintViolationException e) {
             throw new ServiceError(MessageExtractor.extract(e));
         }

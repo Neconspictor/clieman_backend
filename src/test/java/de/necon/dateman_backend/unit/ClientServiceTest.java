@@ -213,4 +213,163 @@ public class ClientServiceTest {
         clientService.addClient(client);
         clientService.addClient(client2);
     }
+
+    @Test
+    public void removeClient_NullNotAllowed() {
+
+        Asserter.assertException(NullPointerException.class).isThrownBy(()->{
+            clientService.removeClient(null);
+        });
+    }
+
+    @Test
+    public void removeClient_ClientNotFound() {
+
+        var client = new Client(null, null, null, null,
+                "id1", null, Sex.DIVERSE, null);
+
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.removeClient(client);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_NOT_FOUND);
+    }
+
+    @Test
+    public void removeClient_clientWillBeRemoved() {
+
+        var user = createAndSaveUser("test@email.com", "test");
+        var client = createAndAddClient("id", user);
+
+        Assertions.assertTrue(clientRepository.findAll().size() == 1);
+        clientService.removeClient(client);
+        Assertions.assertTrue(clientRepository.findAll().size() == 0);
+    }
+
+
+
+    @Test
+    public void updateClient_ClientNullNotAllowed() {
+        var user = createAndSaveUser("test@email.com", "test");
+
+        Asserter.assertException(NullPointerException.class).isThrownBy(()->{
+            clientService.updateClient(null, new Client.ID("id", user));
+        });
+    }
+
+    @Test
+    public void updateClient_ClientIDNullNotAllowed() {
+        var user = createAndSaveUser("test@email.com", "test");
+
+        var client = new Client(null, null, null, null,
+                "id", null, Sex.DIVERSE, user);
+
+        Asserter.assertException(NullPointerException.class).isThrownBy(()->{
+            clientService.updateClient(client, null);
+        });
+    }
+
+
+    @Test
+    public void updateClient_clientIsUpdated() {
+        var user = createAndSaveUser("test@email.com", "test");
+        var client = createAndAddClient("id", user);
+
+        //ensure that the client is found
+       var storedClient = clientRepository.findById(client.getId()).get();
+       Assertions.assertEquals(client, storedClient);
+
+       //now change the client and assert that the changes will be adopted.
+
+        client.setAddress("new address");
+        client.setBirthday(new Date());
+
+        storedClient = clientRepository.findById(client.getId()).get();
+        Assertions.assertNotEquals(client, storedClient);
+
+        clientService.updateClient(client, client.getId());
+        storedClient = clientRepository.findById(client.getId()).get();
+        Assertions.assertEquals(client, storedClient);
+    }
+
+    @Test
+    public void updateClient_clientWithUpdatedIDIsAllowed() {
+        var user = createAndSaveUser("test@email.com", "test");
+        var client = createAndAddClient("id", user);
+
+        //now change the client and assert that the changes will be adopted.
+
+        client.setAddress("new address");
+        client.setBirthday(new Date());
+        var id  = client.getId();
+        client.setId(new Client.ID("new id", user));
+
+        clientService.updateClient(client, id);
+        var storedClient = clientRepository.findById(client.getId()).get();
+        Assertions.assertEquals(client, storedClient);
+        Assertions.assertTrue(clientRepository.findAll().size() == 1);
+    }
+
+    /**
+     * This test ensures that updateClient fails if the client id is changed, but another client
+     * with the same resulting primary key (id-user combination) already exists.
+     */
+    @Test
+    public void updateClient_updatedIDFailsIfAlreadyExsists() {
+        var user = createAndSaveUser("test@email.com", "test");
+        var client = createAndAddClient("id", user);
+        createAndAddClient("another id", user);
+
+        //now change the client and assert that the changes will be adopted.
+
+        client.setAddress("new address");
+        client.setBirthday(new Date());
+        var id  = client.getId();
+        client.setId(new Client.ID("another id", user));
+
+
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.updateClient(client, id);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_ALREADY_EXISTS);
+    }
+
+    /**
+     * This tests ensures that the user of the client id cannot be altered.
+     */
+    @Test
+    public void updateClient_changingUserIsNotAllowed() {
+        var user = createAndSaveUser("test@email.com", "test");
+        var user2 = createAndSaveUser("test2@email.com", "test2");
+        var client = createAndAddClient("id", user);
+        //now change the client and assert that the changes will be adopted.
+
+        client.setAddress("new address");
+        client.setBirthday(new Date());
+        var id  = client.getId();
+        client.setId(new Client.ID("another id", user2));
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.updateClient(client, id);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_CHANGING_USER_NOT_ALLOWED);
+    }
+
+
+    private User createAndSaveUser(String email, String username) {
+        return userRepository.saveAndFlush(new User(email, "password",
+                username, true));
+    }
+
+    private Client createAndAddClient(String id, User user) {
+        var client = new Client(null, null, null, null,
+                id, null, null, user);
+
+        clientService.addClient(client);
+        return client;
+    }
 }
