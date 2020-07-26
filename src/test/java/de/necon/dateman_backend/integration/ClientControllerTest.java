@@ -6,7 +6,6 @@ import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.network.ErrorListDto;
-import de.necon.dateman_backend.network.TokenDto;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.service.ClientService;
 import de.necon.dateman_backend.service.JWTTokenService;
@@ -25,6 +24,7 @@ import java.io.StringWriter;
 import java.util.List;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.CLIENT_ALREADY_EXISTS;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.CLIENT_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -131,6 +131,110 @@ public class ClientControllerTest {
         assertEquals(CLIENT_ALREADY_EXISTS, errorList.getErrors().get(0));
     }
 
+    @Test
+    public void removeClient_removedClientIsNotStoredAnymore() throws Exception {
+        var user = new User("test@email.com",
+                "password", "test", true);
+        userRepository.saveAndFlush(user);
+        var client = createAndAddClient("client1", user);
+
+        var response = removeClient(client, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        //check that client was indeed removed
+        assertEquals(0, clientService.getClientsOfUser(user).size());
+    }
+
+    @Test
+    public void removeClient_NotExisting() throws Exception {
+        var user = new User("test@email.com",
+                "password", "test", true);
+        userRepository.saveAndFlush(user);
+        var client = createClient("client1", user);
+
+        var response = removeClient(client, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(CLIENT_NOT_FOUND, errorList.getErrors().get(0));
+    }
+
+    @Test
+    public void updateClient_valid() throws Exception {
+        var user = new User("test@email.com",
+                "password", "test", true);
+        userRepository.saveAndFlush(user);
+        var client = createAndAddClient("client1", user);
+        var client2 = createClient("client1", user);
+
+        //change any field
+        client2.setEmail("client@email.com");
+
+        var response = updateClient(client2, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        //check that client was indeed removed
+        var clients = clientService.getClientsOfUser(user);
+        assertEquals(1, clientService.getClientsOfUser(user).size());
+        assertEquals(client2, clients.get(0));
+    }
+
+    @Test
+    public void updateClient_NotExisting() throws Exception {
+        var user = new User("test@email.com",
+                "password", "test", true);
+        userRepository.saveAndFlush(user);
+        var client = createClient("client1", user);
+
+        var response = updateClient(client, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(CLIENT_NOT_FOUND, errorList.getErrors().get(0));
+    }
+
+    @Test
+    public void updateClient_invalidId_Null() throws Exception {
+        var user = new User("test@email.com",
+                "password", "test", true);
+        userRepository.saveAndFlush(user);
+        var client = createClient(null, user);
+
+        var response = updateClient(client, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(CLIENT_NOT_FOUND, errorList.getErrors().get(0));
+    }
+
+    @Test
+    public void updateClient_invalidId_Empty() throws Exception {
+        var user = new User("test@email.com",
+                "password", "test", true);
+        userRepository.saveAndFlush(user);
+        var client = createClient("", user);
+
+        var response = updateClient(client, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(CLIENT_NOT_FOUND, errorList.getErrors().get(0));
+    }
+
+    @Test
+    public void updateClient_invalidId_Blank() throws Exception {
+        var user = new User("test@email.com",
+                "password", "test", true);
+        userRepository.saveAndFlush(user);
+        var client = createClient("   ", user);
+
+        var response = updateClient(client, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(CLIENT_NOT_FOUND, errorList.getErrors().get(0));
+    }
+
 
     private Client createAndAddClient(String id, User user) {
         var client = new Client(null, null, null, null,
@@ -168,7 +272,29 @@ public class ClientControllerTest {
                 .getResponse();
     }
 
+    private MockHttpServletResponse removeClient(Client client, String token) throws Exception {
+        var header = JWTTokenService.createTokenHeader(token);
+        var writer = new StringWriter();
+        mapper.writeValue(writer, client);
+        return mvc.perform(post("/clients/remove")
+                .header(header.getValue0(), header.getValue1())
+                .secure(true)
+                .contentType("application/json")
+                .content(writer.toString()))
+                .andReturn()
+                .getResponse();
+    }
 
-
-
+    private MockHttpServletResponse updateClient(Client client, String token) throws Exception {
+        var header = JWTTokenService.createTokenHeader(token);
+        var writer = new StringWriter();
+        mapper.writeValue(writer, client);
+        return mvc.perform(post("/clients/update")
+                .header(header.getValue0(), header.getValue1())
+                .secure(true)
+                .contentType("application/json")
+                .content(writer.toString()))
+                .andReturn()
+                .getResponse();
+    }
 }

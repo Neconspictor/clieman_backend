@@ -1,9 +1,6 @@
 package de.necon.dateman_backend.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -64,7 +61,14 @@ public class Client implements Serializable  {
         this.id = new ID();
     }
 
-    public Client(String address, Date birthday, String email, String forename, String id, String name, Sex sex, User user) {
+    public Client(String address,
+                  Date birthday,
+                  String email,
+                  String forename,
+                  String id,
+                  String name,
+                  Sex sex,
+                  User user) {
         this.address = address;
         this.birthday = birthday;
         this.email = email;
@@ -74,6 +78,28 @@ public class Client implements Serializable  {
         this.id = new ID();
         this.id.id = id;
         this.id.user = user;
+    }
+
+    public Client(
+            @JsonProperty("address") String address,
+            @JsonProperty("birthday") Date birthday,
+            @JsonProperty("email") String email,
+            @JsonProperty("forename") String forename,
+            @JsonProperty("id") ID id,
+            @JsonProperty("name") String name,
+            @JsonProperty("sex") Sex sex)
+    {
+        this.address = address;
+        this.birthday = birthday;
+        this.email = email;
+        this.forename = forename;
+        this.id = id;
+        this.name = name;
+        this.sex = sex;
+
+        // ensure that id is not null
+        if (this.id == null)
+            this.id = new ID();
     }
 
     /**

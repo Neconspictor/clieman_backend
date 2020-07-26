@@ -32,4 +32,18 @@ public class ClientController {
         client =  clientService.addClient(client);
         return client;
     }
+
+    @PostMapping("/clients/remove")
+    void removeClient(@RequestBody Client client) {
+        var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
+        client.getId().setUser(user);
+        clientService.removeClient(client);
+    }
+
+    @PostMapping("/clients/update")
+    void updateClient(@RequestBody Client client) {
+        var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        client.getId().setUser(user);
+        clientService.updateClient(client, client.getId());
+    }
 }
