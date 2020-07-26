@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.integration;
+package de.necon.dateman_backend.unit;
 
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import org.junit.jupiter.api.Test;
