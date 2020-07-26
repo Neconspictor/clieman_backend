@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import static de.necon.dateman_backend.config.ServiceErrorMessages.CLIENT_INVLAID_ID;
 import static de.necon.dateman_backend.config.ServiceErrorMessages.NO_USER;
 
 @Entity
@@ -178,9 +179,7 @@ public class Client implements Serializable  {
 
     @Embeddable
     public static class ID implements Serializable {
-        @NotNull
-        @NotBlank
-        @NotEmpty
+        @NotBlank(message=CLIENT_INVLAID_ID)
         private String id;
 
         @NotNull(message=NO_USER)
