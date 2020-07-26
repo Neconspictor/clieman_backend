@@ -118,7 +118,7 @@ public class Client implements Serializable  {
      *
      * @return The birthday of the client.
      */
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
+    //@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     public Date getBirthday() {
         return birthday;
     }
