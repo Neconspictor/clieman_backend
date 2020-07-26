@@ -21,9 +21,18 @@ public class ClientController {
     List<Client> getClients() {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
         var result =  clientService.getClientsOfUser(user);
-        result.forEach(c->{
+        /*result.forEach(c->{
             c.setUser(null);
-        });
+        });*/
         return result;
     }
+
+    /*@PostMapping("/clients/add")
+    Client addClient(@RequestBody Client client) {
+        var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
+        client = clientService.transform(client);
+        client =  clientService.addClient(client);
+
+        return client;
+    }*/
 }

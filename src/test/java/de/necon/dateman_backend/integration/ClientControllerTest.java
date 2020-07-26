@@ -1,8 +1,12 @@
 package de.necon.dateman_backend.integration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
+import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.service.ClientService;
 import de.necon.dateman_backend.service.JWTTokenService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +19,9 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -37,21 +44,54 @@ public class ClientControllerTest {
     @Autowired
     JWTTokenService tokenService;
 
+    @Autowired
+    ObjectMapper mapper;
+
+    @Autowired
+    private ClientService clientService;
+
 
     @Test
-    public void clients_notAuthenticated() throws Exception {
+    public void getClients_notAuthenticated() throws Exception {
         var response = getClients(null);
         assertTrue(response.getStatus() == HttpStatus.UNAUTHORIZED.value());
     }
 
     @Test
-    public void clients_authenticated() throws Exception {
+    public void getClients_authenticated() throws Exception {
         var enabledUser = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(enabledUser);
         var response = getClients(tokenService.createToken(enabledUser));
         assertTrue(response.getStatus() == HttpStatus.OK.value());
     }
+
+
+    /**
+     * Ensures that the getClients endpoint does not send user data.
+     * @throws Exception
+     */
+    @Test
+    public void getClients_userDataIsNotSend() throws Exception {
+        var enabledUser = new User("test@email.com",
+                "password", "test", true);
+        userRepository.saveAndFlush(enabledUser);
+        var client1 = createAndAddClient("client1", enabledUser);
+        var client2 = createAndAddClient("client2", enabledUser);
+
+        var response = getClients(tokenService.createToken(enabledUser));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        var content = response.getContentAsString();
+
+        var clients = mapper.readValue(content, new TypeReference<List<Client>>(){});
+        assertTrue(clients.size() == 2);
+
+        for (var client : clients) {
+            assertEquals(null, client.getId().getUser());
+        }
+    }
+
 
     private MockHttpServletResponse getClients(String token) throws Exception {
         var header = JWTTokenService.createTokenHeader(token);
@@ -60,5 +100,13 @@ public class ClientControllerTest {
                 .secure(true))
                 .andReturn()
                 .getResponse();
+    }
+
+    private Client createAndAddClient(String id, User user) {
+        var client = new Client(null, null, null, null,
+                id, null, null, user);
+
+        clientService.addClient(client);
+        return client;
     }
 }

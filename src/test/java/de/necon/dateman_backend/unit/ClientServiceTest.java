@@ -62,7 +62,7 @@ public class ClientServiceTest {
         var clients = clientService.getClientsOfUser(user1);
         Assertions.assertTrue(clients.size() == 3);
         clients.forEach(client -> {
-            Assertions.assertEquals(client.getUser(), user1);
+            Assertions.assertEquals(client.getId().getUser(), user1);
         });
     }
 

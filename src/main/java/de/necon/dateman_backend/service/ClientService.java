@@ -27,7 +27,7 @@ public interface ClientService {
      * @throws ConstraintViolationException If client is not valid
      * @throws DataIntegrityViolationException If client is not valid
      */
-    void addClient(Client client) throws ServiceError;
+    Client addClient(Client client) throws ServiceError;
 
     /**
      * Updates the data of a client, that was previously added to the database.

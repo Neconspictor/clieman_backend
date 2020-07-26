@@ -41,20 +41,19 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public void addClient(Client client) throws ServiceError {
+    public Client addClient(Client client) throws ServiceError {
         var id = client.getId().getId();
 
         if (id == null || id.isBlank()) {
             throw new ServiceError(CLIENT_INVLAID_ID);
         }
 
-        checkUser(client.getUser());
+        checkUser(client.getId().getUser());
 
         var optional = clientRepository.findById(client.getId());
         if (optional.isPresent()) throw new ServiceError(CLIENT_ALREADY_EXISTS);
 
-
-        clientRepository.saveAndFlush(client);
+        return clientRepository.saveAndFlush(client);
     }
 
     @Override

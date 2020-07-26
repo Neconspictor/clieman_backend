@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -8,7 +9,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -112,17 +112,6 @@ public class Client implements Serializable  {
     }
 
     /**
-     *  @return The id of the client.
-     */
-    public String getLocalId() {
-        return id.getId();
-    }
-
-    public void setLocalId(String id) {
-        this.id.setId(id);
-    }
-
-    /**
      * @return  The family name.
      */
     public String getName() {
@@ -131,18 +120,6 @@ public class Client implements Serializable  {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * Provides the user who has created this client.
-     * @return The user the client belongs to.
-     */
-    public User getUser() {
-        return id.getUser();
-    }
-
-    public void setUser(User user) {
-        this.id.setUser(user);
     }
 
     @Override
@@ -221,6 +198,7 @@ public class Client implements Serializable  {
         @NotNull(message=NO_USER)
         @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
         @JoinColumn(nullable = false, name = "user_id_embedded")
+        @JsonIgnore
         private User user;
 
 
