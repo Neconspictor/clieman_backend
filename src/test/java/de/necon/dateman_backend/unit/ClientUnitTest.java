@@ -17,8 +17,7 @@ import java.io.StringWriter;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.CLIENT_INVLAID_ID;
 import static de.necon.dateman_backend.config.ServiceErrorMessages.NO_USER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class ClientUnitTest {
@@ -83,6 +82,46 @@ public class ClientUnitTest {
         var deserializedClient = mapper.readValue(writer.toString(), Client.class);
 
         assertEquals(null, deserializedClient.getId().getUser());
+    }
+
+
+    /**
+     * Ensures that the id field is serialized using the following scheme:
+     * "id" : "id of the client"
+     * @throws IOException
+     */
+    @Test
+    public void id_isCustomSerialized() throws IOException {
+
+        var user = createUser("test@email.com", "test");
+        var client = createClient("cool id of the client", user);
+
+        StringWriter writer = new StringWriter();
+        mapper.writeValue(writer, client);
+
+        var serialized = writer.toString();
+
+        String expected = "{\"id\":\"" + client.getId().getId() + "\"}";
+
+        assertEquals(expected, serialized);
+    }
+
+    @Test
+    public void id_isCustomDeserialized() throws IOException {
+
+        var user = createUser("test@email.com", "test");
+        var client = createClient("cool id of the client", user);
+
+        StringWriter writer = new StringWriter();
+        mapper.writeValue(writer, client);
+
+        var serialized = writer.toString();
+
+        var deserialized = mapper.readValue(serialized, Client.class);
+        //Note: user field gets lost!
+        deserialized.getId().setUser(user);
+        assertEquals(deserialized, client);
+
     }
 
     private static Client createClient(String id, User user) {

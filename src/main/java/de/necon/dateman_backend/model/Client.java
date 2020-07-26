@@ -3,6 +3,16 @@ package de.necon.dateman_backend.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -10,6 +20,7 @@ import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,6 +47,9 @@ public class Client implements Serializable  {
 
     @Valid
     @EmbeddedId
+    @JsonSerialize(using = IDSerializer.class)
+    @JsonDeserialize(using = IDDeserializer.class)
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
     private ID id;
 
     @Basic
@@ -133,20 +147,18 @@ public class Client implements Serializable  {
             birthdayStr = formatter.format(birthday);
         }
 
-        String user = null;
-
-        if (this.id.getUser() != null) user = this.id.getUser().getEmail();
-
+        var idString = id != null ? id.getId() : null;
+        var userString = id != null && id.getUser() != null ? this.id.getUser().getEmail() : null;
 
         return "Client{" +
                 "address='" + address + '\'' +
                 ", birthday=" + birthdayStr +
                 ", email='" + email + '\'' +
                 ", forename='" + forename + '\'' +
-                ", id=" + id.getId() +
+                ", id=" + idString +
                 ", name='" + name + '\'' +
                 ", sex=" + sex +
-                ", user=" + user +
+                ", user=" + userString +
                 '}';
     }
 
@@ -223,9 +235,12 @@ public class Client implements Serializable  {
 
         @Override
         public String toString() {
+
+            var userString = user != null ? user.getId()  : "null";
+
             return "ID{" +
                     "id='" + id + '\'' +
-                    ", User=" + user.getId() +
+                    ", User=" + userString +
                     '}';
         }
 
@@ -257,6 +272,27 @@ public class Client implements Serializable  {
                     .append(id)
                     .append(user)
                     .toHashCode();
+        }
+    }
+
+
+    public static class IDSerializer extends JsonSerializer<ID> {
+
+        @Override
+        public void serialize(ID id,
+                              JsonGenerator jsonGenerator,
+                              SerializerProvider serializerProvider)
+                throws IOException, JsonProcessingException {
+
+            jsonGenerator.writeString(id.getId());
+        }
+    }
+
+    public static class IDDeserializer extends JsonDeserializer<ID> {
+
+        @Override
+        public ID deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            return new ID(p.getValueAsString(), null);
         }
     }
 }

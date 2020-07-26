@@ -76,8 +76,8 @@ public class ClientControllerTest {
         var enabledUser = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(enabledUser);
-        var client1 = createAndAddClient("client1", enabledUser);
-        var client2 = createAndAddClient("client2", enabledUser);
+        createAndAddClient("client1", enabledUser);
+        createAndAddClient("client2", enabledUser);
 
         var response = getClients(tokenService.createToken(enabledUser));
         assertTrue(response.getStatus() == HttpStatus.OK.value());
