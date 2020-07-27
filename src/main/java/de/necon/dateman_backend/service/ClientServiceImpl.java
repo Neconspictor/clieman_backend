@@ -2,12 +2,12 @@ package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.Client;
+import de.necon.dateman_backend.model.ID;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.util.MessageExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +45,7 @@ public class ClientServiceImpl implements ClientService {
         var id = client.getId().getId();
 
         if (id == null || id.isBlank()) {
-            throw new ServiceError(CLIENT_INVLAID_ID);
+            throw new ServiceError(INVALID_ID);
         }
 
         checkUser(client.getId().getUser());
@@ -57,7 +57,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public void updateClient(Client client, Client.ID id) throws ServiceError {
+    public void updateClient(Client client, ID id) throws ServiceError {
 
         if (id.getUser() != client.getId().getUser()) {
             throw new ServiceError(CLIENT_CHANGING_USER_NOT_ALLOWED);

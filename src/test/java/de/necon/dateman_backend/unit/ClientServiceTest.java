@@ -2,6 +2,7 @@ package de.necon.dateman_backend.unit;
 
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.Client;
+import de.necon.dateman_backend.model.ID;
 import de.necon.dateman_backend.model.Sex;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.ClientRepository;
@@ -122,7 +123,7 @@ public class ClientServiceTest {
             clientService.addClient(client);
         }).source();
 
-        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_INVLAID_ID);
+        Asserter.assertContainsError(serviceError.getErrors(), INVALID_ID);
     }
 
     @Test
@@ -136,7 +137,7 @@ public class ClientServiceTest {
             clientService.addClient(client);
         }).source();
 
-        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_INVLAID_ID);
+        Asserter.assertContainsError(serviceError.getErrors(), INVALID_ID);
     }
 
 
@@ -254,7 +255,7 @@ public class ClientServiceTest {
         var user = createAndSaveUser("test@email.com", "test");
 
         Asserter.assertException(NullPointerException.class).isThrownBy(()->{
-            clientService.updateClient(null, new Client.ID("id", user));
+            clientService.updateClient(null, new ID("id", user));
         });
     }
 
@@ -303,7 +304,7 @@ public class ClientServiceTest {
         client.setAddress("new address");
         client.setBirthday(new Date());
         var id  = client.getId();
-        client.setId(new Client.ID("new id", user));
+        client.setId(new ID("new id", user));
 
         clientService.updateClient(client, id);
         var storedClient = clientRepository.findById(client.getId()).get();
@@ -326,7 +327,7 @@ public class ClientServiceTest {
         client.setAddress("new address");
         client.setBirthday(new Date());
         var id  = client.getId();
-        client.setId(new Client.ID("another id", user));
+        client.setId(new ID("another id", user));
 
 
 
@@ -350,7 +351,7 @@ public class ClientServiceTest {
         client.setAddress("new address");
         client.setBirthday(new Date());
         var id  = client.getId();
-        client.setId(new Client.ID("another id", user2));
+        client.setId(new ID("another id", user2));
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             clientService.updateClient(client, id);

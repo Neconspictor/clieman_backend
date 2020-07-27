@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.repository;
 
 import de.necon.dateman_backend.model.Client;
+import de.necon.dateman_backend.model.ID;
 import de.necon.dateman_backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ClientRepository extends JpaRepository<Client, Client.ID> {
+public interface ClientRepository extends JpaRepository<Client, ID> {
 
     /**
      * Returns all clients of a given user.

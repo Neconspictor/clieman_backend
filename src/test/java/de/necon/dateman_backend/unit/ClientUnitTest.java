@@ -15,7 +15,7 @@ import javax.validation.ValidatorFactory;
 import java.io.IOException;
 import java.io.StringWriter;
 
-import static de.necon.dateman_backend.config.ServiceErrorMessages.CLIENT_INVLAID_ID;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.INVALID_ID;
 import static de.necon.dateman_backend.config.ServiceErrorMessages.NO_USER;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,7 +66,7 @@ public class ClientUnitTest {
         var violations = validator.validate(client);
         assertTrue(violations.size() == 1);
         var constraint = violations.iterator().next();
-        assertTrue(constraint.getMessageTemplate().equals(CLIENT_INVLAID_ID));
+        assertTrue(constraint.getMessageTemplate().equals(INVALID_ID));
     }
 
     @Test

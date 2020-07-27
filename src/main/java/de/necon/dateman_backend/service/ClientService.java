@@ -2,6 +2,7 @@ package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.Client;
+import de.necon.dateman_backend.model.ID;
 import de.necon.dateman_backend.model.User;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -38,7 +39,7 @@ public interface ClientService {
      *
      * @throws NullPointerException If client or id is null.
      */
-    void updateClient(Client client, Client.ID id) throws ServiceError;
+    void updateClient(Client client, ID id) throws ServiceError;
 
     /**
      * Removes a client from the database.
