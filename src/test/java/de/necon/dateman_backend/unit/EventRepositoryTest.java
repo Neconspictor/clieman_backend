@@ -38,10 +38,10 @@ public class EventRepositoryTest {
 
         ModelFactory modelFactory = new ModelFactory(userRepository, clientRepository, eventRepository);
 
-        List<User> users = modelFactory.createUsers(3);
+        List<User> users = modelFactory.createUsers(3, true);
         List<Event> events = modelFactory.createEvents(List.of(
                 new ModelFactory.SimpleEventCreationDesc(5, users.get(0)),
-                new ModelFactory.SimpleEventCreationDesc(2, users.get(1))));
+                new ModelFactory.SimpleEventCreationDesc(2, users.get(1))), true);
 
         var result0 = eventRepository.findAllByUser(users.get(0));
         var result1 = eventRepository.findAllByUser(users.get(1));

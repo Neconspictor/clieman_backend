@@ -53,11 +53,11 @@ public class EventServiceTest {
 
         ModelFactory mf = new ModelFactory(userRepository, clientRepository, eventRepository);
 
-        var users = mf.createUsers(2);
+        var users = mf.createUsers(2, true);
         mf.createEvents(List.of(
                 new ModelFactory.SimpleEventCreationDesc(3, users.get(0)),
                 new ModelFactory.SimpleEventCreationDesc(2, users.get(1))
-        ));
+        ), true);
 
         var events = eventService.getEventsOfUser(users.get(0));
         Assertions.assertTrue(events.size() == 3);

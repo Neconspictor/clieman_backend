@@ -41,7 +41,7 @@ public final class ModelFactory {
 
 
 
-    public List<Event> createEvents(List<SimpleEventCreationDesc> descs) {
+    public List<Event> createEvents(List<SimpleEventCreationDesc> descs, boolean store) {
 
         final int clientCount = 2;
 
@@ -51,56 +51,61 @@ public final class ModelFactory {
                 creationDescs.add(new EventCreationDesc(clientCount, desc.user));
         });
 
-        return createEventsWithCreationDesc(creationDescs);
+        return createEventsWithCreationDesc(creationDescs, store);
     }
 
-    public List<Event> createEventsWithCreationDesc(List<EventCreationDesc> descs) {
+    public List<Event> createEventsWithCreationDesc(List<EventCreationDesc> descs, boolean store) {
         List<Event> events = new ArrayList<>();
         for (int i = 0; i < descs.size(); ++i) {
             var desc = descs.get(i);
-            List<Client> clients = createClients(desc.clientCount, desc.user);
-            events.add(createEvent("event" + i, desc.user, clients));
+            List<Client> clients = createClients(desc.clientCount, desc.user, store);
+            events.add(createEvent("event" + i, desc.user, clients, store));
         }
 
         return events;
     }
 
-    public Event createEvent(String id, User user, List<Client> clients) {
-        var event = new Event(null,
-                null,
-                null,
-                clients,
-                null,
-                id,
-                null,
-                user);
-        return eventRepository.saveAndFlush(event);
-    }
-
-    public List<Client> createClients(int count, User user) {
+    public List<Client> createClients(int count, User user, boolean store) {
         List<Client> clients = new ArrayList<>();
         for (int i = 0; i < count; ++i) {
-            clients.add(createClient("test" + i + "@email.com", user));
+            clients.add(createClient("test" + i + "@email.com", user, store));
         }
         return clients;
     }
 
-    public Client createClient(String id, User user) {
-        return clientRepository.saveAndFlush(new Client(null, null, null, null,
-                id, null, null, user));
+    public Client createClient(String id, User user, boolean store) {
+        Client client = new Client(null, null, null, null,
+                id, null, null, user);
+        if (store) client = clientRepository.saveAndFlush(client);
+        return client;
     }
 
-    public List<User> createUsers(int count) {
+    public List<User> createUsers(int count, boolean store) {
         List<User> users = new ArrayList<>();
         for (int i = 0; i < count; ++i) {
-            users.add(createUser("test" + i + "@email.com"));
+            users.add(createUser("test" + i + "@email.com", true, store));
         }
         return users;
     }
 
-    public User createUser(String email) {
-        return userRepository.saveAndFlush(new User(email, "password", null, true));
+    public Event createEvent(String id, User user, List<Client> clients, boolean store) {
+        Event event = createEvent(id, user, clients);
+        if (store) event = eventRepository.saveAndFlush(event);
+        return event;
     }
+
+    public Event createEvent(String id, User user, List<Client> clients) {
+        return new Event(null, null, null, clients,
+                null, id, null, user);
+    }
+
+    public User createUser(String email, boolean enabled, boolean store) {
+        User user = new User(email, "password", null, enabled);
+        if (store) user = userRepository.saveAndFlush(user);
+        return user;
+    }
+
+
 
     public static class SimpleEventCreationDesc {
         public int eventCount;
