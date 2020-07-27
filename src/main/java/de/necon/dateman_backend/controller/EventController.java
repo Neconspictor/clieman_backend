@@ -37,14 +37,14 @@ public class EventController {
     @PostMapping("/events/remove")
     void removeEvent(@RequestBody Event event) {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
-        event.getId().setUser(user);
+        event.setUser(user);
         eventService.removeEvent(event);
     }
 
     @PostMapping("/events/update")
     void updateEvent(@RequestBody Event event) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-        event.getId().setUser(user);
+        event.setUser(user);
         eventService.updateEvent(event);
     }
 }

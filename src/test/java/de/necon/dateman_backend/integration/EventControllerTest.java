@@ -5,9 +5,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.factory.ModelFactory;
 import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
-import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.network.ErrorListDto;
 import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
@@ -27,8 +27,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.StringWriter;
+import java.util.Date;
 import java.util.List;
 
+import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -133,6 +135,122 @@ public class EventControllerTest {
         assertEquals(event, deserialized);
     }
 
+    @Test
+    public void addEvent_addingTwiceNotAllowed() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var clients = modelFactory.createClients(3, user, true);
+        var event = modelFactory.createEvent("eventID", user, clients, true);
+
+        var response = addEvent(event, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(EVENT_ALREADY_EXISTS, errorList.getErrors().get(0));
+    }
+
+    @Test
+    public void addEvent_invalidNotAllowed() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var clients = modelFactory.createClients(3, user, false);
+        var event = modelFactory.createEvent("eventID", user, clients, false);
+
+        var response = addEvent(event, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(EVENT_NOT_VALID, errorList.getErrors().get(0));
+    }
+
+
+    @Test
+    public void removeEvent_valid() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var clients = modelFactory.createClients(3, user, true);
+        var event = modelFactory.createEvent("eventID", user, clients, true);
+
+        var response = removeEvent(event, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        //check that client was indeed removed
+        assertEquals(0, eventService.getEventsOfUser(user).size());
+    }
+
+    @Test
+    public void removeEvent_invalid_notExisting() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var clients = modelFactory.createClients(3, user, true);
+        var event = modelFactory.createEvent("eventID", user, clients, false);
+
+        var response = removeEvent(event, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(EVENT_NOT_FOUND, errorList.getErrors().get(0));
+    }
+
+
+    @Test
+    public void updateEvent_valid() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var clients = modelFactory.createClients(3, user, true);
+        var event = modelFactory.createEvent("eventID", user, clients, true);
+        var event2 = event.copyMiddle();
+
+        event2.setStart(new Date());
+        event2.setColor("#0030AA");
+        event2.setName("Updated Event");
+
+        var response = updateEvent(event2, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        //check that exactly one event exists
+        var events = eventService.getEventsOfUser(user);
+        assertEquals(1, events.size());
+
+        //check that the event matches the event2
+        assertEquals(event2, events.get(0));
+    }
+
+    @Test
+    public void updateEvent_invalid_notExisting() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var clients = modelFactory.createClients(3, user, true);
+        var event = modelFactory.createEvent("eventID", user, clients, false);
+
+        var response = updateEvent(event, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(EVENT_NOT_FOUND, errorList.getErrors().get(0));
+    }
+
+    @Test
+    public void updateEvent_invalid_idNull() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var clients = modelFactory.createClients(3, user, true);
+        var event = modelFactory.createEvent(null, user, clients, false);
+
+        var response = updateEvent(event, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(EVENT_NOT_FOUND, errorList.getErrors().get(0));
+    }
+
+    @Test
+    public void updateEvent_invalid_idBlank() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var clients = modelFactory.createClients(3, user, true);
+        var event = modelFactory.createEvent("   ", user, clients, false);
+
+        var response = updateEvent(event, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        assertEquals(EVENT_NOT_FOUND, errorList.getErrors().get(0));
+    }
+
+
     private Event deserialize(String serialized) throws JsonProcessingException {
         return mapper.readValue(serialized, Event.class);
     }
@@ -172,7 +290,7 @@ public class EventControllerTest {
                 .getResponse();
     }
 
-    private MockHttpServletResponse updateClient(Event event, String token) throws Exception {
+    private MockHttpServletResponse updateEvent(Event event, String token) throws Exception {
         var header = JWTTokenService.createTokenHeader(token);
         var writer = new StringWriter();
         mapper.writeValue(writer, event);
