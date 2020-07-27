@@ -11,10 +11,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import javax.persistence.Embeddable;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
@@ -26,11 +23,12 @@ import static de.necon.dateman_backend.config.ServiceErrorMessages.NO_USER;
 @Embeddable
 public class ID implements Serializable {
     @NotBlank(message= INVALID_ID)
+    @Column(name="ID_EMBEDDED")
     private String id;
 
     @NotNull(message=NO_USER)
     @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false, name = "user_id_embedded")
+    @JoinColumn(nullable = false, name = "USER_ID_EMBEDDED")
     @JsonIgnore
     private User user;
 
@@ -57,11 +55,11 @@ public class ID implements Serializable {
     @Override
     public String toString() {
 
-        var userString = user != null ? user.getId()  : "null";
+        Long userID = user != null ? user.getId()  : null;
 
         return "ID{" +
                 "id='" + id + '\'' +
-                ", User=" + userString +
+                ", User=" + userID +
                 '}';
     }
 

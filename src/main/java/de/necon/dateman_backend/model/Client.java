@@ -35,7 +35,7 @@ public class Client implements Serializable  {
     @JsonSerialize(using = ID.IDSerializer.class)
     @JsonDeserialize(using = ID.IDDeserializer.class)
     @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
-    private ID id;
+    private ID id = new ID();
 
     @Basic
     private String name;
@@ -46,7 +46,18 @@ public class Client implements Serializable  {
     private static final long serialVersionUID = 1L;
 
     public Client() {
-        this.id = new ID();
+
+    }
+
+    /**
+     * Constructs a new Client with the specified id.
+     * Note: This constructor is needed so that jackson library will create a not-null ID field.
+     * @param id
+     */
+    public Client(@JsonProperty("id") ID id) {
+        // ensure that id is not null
+        if (id != null)
+            this.id = id;
     }
 
     public Client(String address,
@@ -66,7 +77,7 @@ public class Client implements Serializable  {
         this.id = new ID(id, user);
     }
 
-    public Client(
+    /*public Client(
             @JsonProperty("address") String address,
             @JsonProperty("birthday") Date birthday,
             @JsonProperty("email") String email,
@@ -86,7 +97,7 @@ public class Client implements Serializable  {
         // ensure that id is not null
         if (this.id == null)
             this.id = new ID();
-    }
+    }*/
 
     /**
      *
