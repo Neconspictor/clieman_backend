@@ -5,6 +5,7 @@ import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.ID;
 import de.necon.dateman_backend.model.User;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,7 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.NO_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -110,9 +110,22 @@ public class EventUnitTest {
         var deserialized = serializeDeserialize(event);
         propagateUser(deserialized, user);
 
-        event.setClients(new HashSet<>());
+        event.setClients(new ArrayList<>());
 
         assertEquals(event, deserialized);
+    }
+
+    @Test
+    public void JSONConversion_ExpectedSerialization() throws IOException {
+
+        List<String> clientIDs = List.of("client1", "client2");
+
+        var event = createValidEvent("eventID", clientIDs);
+
+        var serialized = serialize(event);
+
+        String expected = "{\"id\":\"eventID\",\"clients\":[\"client1\",\"client2\"]}";
+        Assertions.assertEquals(expected, serialized);
     }
 
     private static void propagateUser(Event event, User user) {
@@ -124,22 +137,31 @@ public class EventUnitTest {
 
 
     private static Event createValidEvent() {
-        var user = createUser("test@email.com", "test");
-        Set<Client> clients = new HashSet<>();
-        clients.add(createClient("client id", user));
-        clients.add(createClient("client id2", user));
+        return createValidEvent("eventID", List.of("client1", "client2"));
+    }
 
-        return  createEvent("event id", user, clients);
+    private static Event createValidEvent(String eventID, List<String> clientIds) {
+        var user = createUser("test@email.com", "test");
+        List<Client> clients = new ArrayList<>();
+        clientIds.forEach(id -> {
+            clients.add(createClient(id, user));
+        });
+
+        return  createEvent(eventID, user, clients);
     }
 
     private Event serializeDeserialize(Event event) throws IOException {
+        return mapper.readValue(serialize(event), Event.class);
+    }
+
+    private String serialize(Event event) throws IOException {
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, event);
-        return mapper.readValue(writer.toString(), Event.class);
+        return writer.toString();
     }
 
 
-    private static Event createEvent(String id, User user, Set<Client> clients) {
+    private static Event createEvent(String id, User user, List<Client> clients) {
         return new Event(null,
                 null,
                 null,

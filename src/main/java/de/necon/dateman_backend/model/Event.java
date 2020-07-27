@@ -39,7 +39,7 @@ public class Event implements Serializable  {
                     @JoinColumn(name="CLIENT_USER", referencedColumnName="USER_ID_EMBEDDED")
             }
     )
-    private Set<Client> clients = new HashSet<>();
+    private List<Client> clients = new ArrayList<>();
 
     @Basic
     private String color;
@@ -67,18 +67,18 @@ public class Event implements Serializable  {
     public Event() {
     }
 
-    public Event(@JsonProperty("id") ID id, @JsonProperty("clients") Set<Client> clients) {
+    public Event(@JsonProperty("id") ID id, @JsonProperty("clients") List<Client> clients) {
         // ensure that id is not null
         this.id = id;
         this.clients = clients;
         if (this.id == null) this.id = new ID();
-        if (this.clients == null) this.clients = new HashSet<>();
+        if (this.clients == null) this.clients = new ArrayList<>();
     }
 
     public Event(String details,
                  Date start,
                  Date end,
-                 Set<Client> clients,
+                 List<Client> clients,
                  String color,
                  String id,
                  String name,
@@ -92,11 +92,11 @@ public class Event implements Serializable  {
         this.name = name;
     }
 
-    public Set<Client> getClients() {
+    public List<Client> getClients() {
         return clients;
     }
 
-    public void setClients(Set<Client> clients) {
+    public void setClients(List<Client> clients) {
         this.clients = clients;
     }
 
