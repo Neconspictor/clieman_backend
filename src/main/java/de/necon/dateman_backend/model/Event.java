@@ -46,7 +46,9 @@ public class Event implements Serializable  {
 
     @Basic
     private String details;
+
     @Basic
+    @Column(name="end_date")
     private Date end;
 
     @Valid
@@ -60,6 +62,7 @@ public class Event implements Serializable  {
     private String name;
 
     @Basic
+    @Column(name="start_date")
     private Date start;
 
     private static final long serialVersionUID = 0L;
