@@ -7,6 +7,7 @@ import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.util.MessageExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +49,11 @@ public class EventServiceImpl implements EventService {
         var optional = eventRepository.findById(event.getId());
         if (optional.isPresent()) throw new ServiceError(EVENT_ALREADY_EXISTS);
 
-        return eventRepository.saveAndFlush(event);
+        try {
+            return eventRepository.saveAndFlush(event);
+        } catch (ConstraintViolationException | JpaObjectRetrievalFailureException e) {
+            throw new ServiceError(EVENT_NOT_VALID, e);
+        }
     }
 
     @Override
@@ -92,6 +97,8 @@ public class EventServiceImpl implements EventService {
         if (event == null || event.getId() == null) {
             throw new ServiceError(NO_EVENT);
         }
+
+        baseCheck(event.getId().getUser());
     }
 
     private void baseCheck(User user) {

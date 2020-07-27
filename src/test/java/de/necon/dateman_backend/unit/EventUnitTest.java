@@ -48,7 +48,7 @@ public class EventUnitTest {
     public void id_valid() {
         var user = createUser("test@email.com", "test");
 
-        Event event = createEvent("event id", user, null);
+        Event event = createEvent("event id", user, new ArrayList<>());
 
         var violations = validator.validate(event);
         assertTrue(violations.size() == 0);
@@ -58,7 +58,7 @@ public class EventUnitTest {
     public void id_invalid() {
         var user = createUser("test@email.com", "test");
 
-        Event event = createEvent("event id", null, null);
+        Event event = createEvent("event id", null, new ArrayList<>());
 
         var violations = validator.validate(event);
         assertTrue(violations.size() == 1);

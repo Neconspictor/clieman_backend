@@ -31,4 +31,5 @@ public class ServiceErrorMessages {
     public static final String NO_EVENT = "NoEvent";
     public static final String EVENT_ALREADY_EXISTS = "EventAlreadyExists";
     public static final String EVENT_NOT_FOUND = "EventNotFound";
+    public static final String EVENT_NOT_VALID = "EventNotValid";
 }

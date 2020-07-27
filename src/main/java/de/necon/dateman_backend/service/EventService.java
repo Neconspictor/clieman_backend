@@ -3,9 +3,7 @@ package de.necon.dateman_backend.service;
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.User;
-import org.springframework.dao.DataIntegrityViolationException;
 
-import javax.validation.ConstraintViolationException;
 import java.util.List;
 
 public interface EventService {

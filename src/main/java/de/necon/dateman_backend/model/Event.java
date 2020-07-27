@@ -17,6 +17,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
@@ -39,6 +40,7 @@ public class Event implements Serializable  {
                     @JoinColumn(name="CLIENT_USER", referencedColumnName="USER_ID_EMBEDDED")
             }
     )
+    @NotNull
     private List<Client> clients = new ArrayList<>();
 
     @Basic
@@ -95,6 +97,27 @@ public class Event implements Serializable  {
         this.name = name;
     }
 
+    /**
+     * @return  a deep copy except the list entries of clients and the user.
+     */
+    public Event copyMiddle() {
+
+        Date startDate = start != null ? new Date(start.getTime()) : null;
+        Date endDate = end != null ? new Date(end.getTime()) : null;
+        String idString = id != null ? id.getId() : null;
+        User user = id != null ?  id.getUser() : null;
+
+        return new Event(details,
+                    startDate,
+                    endDate,
+                    new ArrayList<>(clients),
+                    color,
+                    idString,
+                    name,
+                    user
+                );
+    }
+
     public List<Client> getClients() {
         return clients;
     }
@@ -135,7 +158,7 @@ public class Event implements Serializable  {
         return end;
     }
 
-    public void setEnd(Date start) {
+    public void setEnd(Date end) {
         this.end = end;
     }
 
