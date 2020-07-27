@@ -4,12 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.ID;
-import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
+import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.util.ModelFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
@@ -30,6 +35,20 @@ public class EventUnitTest {
     @Autowired
     ObjectMapper mapper;
 
+    @Autowired
+    ModelFactory modelFactory;
+
+    @TestConfiguration
+    public static class Config {
+
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
+        }
+    }
+
     @BeforeAll
     public static void setUp() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
@@ -46,9 +65,8 @@ public class EventUnitTest {
 
     @Test
     public void id_valid() {
-        var user = createUser("test@email.com", "test");
-
-        Event event = createEvent("event id", user, new ArrayList<>());
+        var user = modelFactory.createUser("test@email.com", true, false);
+        Event event = modelFactory.createEvent("event id", user, new ArrayList<>());
 
         var violations = validator.validate(event);
         assertTrue(violations.size() == 0);
@@ -56,9 +74,8 @@ public class EventUnitTest {
 
     @Test
     public void id_invalid() {
-        var user = createUser("test@email.com", "test");
 
-        Event event = createEvent("event id", null, new ArrayList<>());
+        Event event = modelFactory.createEvent("event id", null, new ArrayList<>());
 
         var violations = validator.validate(event);
         assertTrue(violations.size() == 1);
@@ -82,7 +99,7 @@ public class EventUnitTest {
         var event = createValidEvent();
         var user = event.getId().getUser();
         var deserialized = serializeDeserialize(event);
-        propagateUser(deserialized, user);
+        deserialized.setUser(user);
 
         assertEquals(event, deserialized);
     }
@@ -94,7 +111,7 @@ public class EventUnitTest {
         var user = event.getId().getUser();
         event.setId(null);
         var deserialized = serializeDeserialize(event);
-        propagateUser(deserialized, user);
+        deserialized.setUser(user);
 
         event.setId(new ID(null, user));
 
@@ -108,7 +125,7 @@ public class EventUnitTest {
         var user = event.getId().getUser();
         event.setClients(null);
         var deserialized = serializeDeserialize(event);
-        propagateUser(deserialized, user);
+        deserialized.setUser(user);
 
         event.setClients(new ArrayList<>());
 
@@ -128,26 +145,18 @@ public class EventUnitTest {
         Assertions.assertEquals(expected, serialized);
     }
 
-    private static void propagateUser(Event event, User user) {
-        event.getId().setUser(user);
-        event.getClients().forEach(c -> {
-            c.getId().setUser(user);
-        });
-    }
-
-
-    private static Event createValidEvent() {
+    private Event createValidEvent() {
         return createValidEvent("eventID", List.of("client1", "client2"));
     }
 
-    private static Event createValidEvent(String eventID, List<String> clientIds) {
-        var user = createUser("test@email.com", "test");
+    private Event createValidEvent(String eventID, List<String> clientIds) {
+        var user = modelFactory.createUser("test@email.com", true, false);
         List<Client> clients = new ArrayList<>();
         clientIds.forEach(id -> {
-            clients.add(createClient(id, user));
+            clients.add(modelFactory.createClient(id, user, false));
         });
 
-        return  createEvent(eventID, user, clients);
+        return  modelFactory.createEvent(eventID, user, clients, false);
     }
 
     private Event serializeDeserialize(Event event) throws IOException {
@@ -160,32 +169,4 @@ public class EventUnitTest {
         return writer.toString();
     }
 
-
-    private static Event createEvent(String id, User user, List<Client> clients) {
-        return new Event(null,
-                null,
-                null,
-                clients,
-                null,
-                id,
-                null,
-                user);
-    }
-
-    private static Client createClient(String id, User user) {
-        return new Client(null,
-                null,
-                null,
-                null,
-                id,
-                null,
-                null,
-                user);
-    }
-
-    private static User createUser(String email, String username) {
-        User user = new User(email, "password", username, true);
-        user.setId(0L);
-        return user;
-    }
 }

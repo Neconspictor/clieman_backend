@@ -50,20 +50,6 @@ public class UserServiceTest {
     @Autowired
     private VerificationTokenRepository tokenRepository;
 
-    @BeforeEach
-    public void setup() {
-
-//        clientRepository.deleteAll();
-//        clientRepository.flush();
-//        tokenRepository.deleteAll();
-//        tokenRepository.flush();
-//        userRepository.deleteAll();
-//        userRepository.flush();
-
-        //entityManager.clear();
-        //entityManager.flush();
-    }
-
 
     @Test
     public void registerNewUserAccount_NewUserIsAdded() throws ServiceError {

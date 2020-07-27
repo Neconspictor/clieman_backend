@@ -1,4 +1,4 @@
-package de.necon.dateman_backend.factory;
+package de.necon.dateman_backend.util;
 
 import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.Event;
@@ -17,7 +17,9 @@ public final class ModelFactory {
     private EventRepository eventRepository;
     private UserRepository userRepository;
 
-    public ModelFactory(UserRepository userRepository, ClientRepository clientRepository, EventRepository eventRepository) {
+    public ModelFactory(UserRepository userRepository,
+                        ClientRepository clientRepository,
+                        EventRepository eventRepository) {
         this.userRepository = userRepository;
         this.clientRepository = clientRepository;
         this.eventRepository = eventRepository;

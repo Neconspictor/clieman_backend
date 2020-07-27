@@ -1,7 +1,10 @@
 package de.necon.dateman_backend.integration;
 
 import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.util.ModelFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -9,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -25,6 +30,20 @@ public class UserIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    ModelFactory modelFactory;
+
+    @TestConfiguration
+    public static class Config {
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
+
+        }
+    }
+
     /**
      * Tests that it is not possible to add multiple users with the same email address.
      */
@@ -32,8 +51,8 @@ public class UserIntegrationTest {
     public void testEmailUniqueConstraint() {
         final String email = "test@email.com";
 
-        var user = createValidUser();
-        var user2 = createSecondValidUser();
+        var user = modelFactory.createUser("test@email.com", true, false);
+        var user2 = modelFactory.createUser("test2@email.com", true, false);
         user2.setEmail(user.getEmail());
 
         testEntityManager.persistAndFlush(user);
@@ -44,11 +63,11 @@ public class UserIntegrationTest {
 
     @Test
     public void testUsernameMultipleNullAllowed() {
-        var user = createValidUser();
+        var user = modelFactory.createUser("test@email.com", true, false);
         user.setUsername(null);
         testEntityManager.persistAndFlush(user);
 
-        var user2 = createSecondValidUser();
+        var user2 = modelFactory.createUser("test2@email.com", true, false);
         user2.setUsername(null);
         testEntityManager.persistAndFlush(user2);
     }
@@ -65,17 +84,13 @@ public class UserIntegrationTest {
          */
         final String errorMessageKeyword = "ON PUBLIC.TB_USER(USERNAME)";
 
-        testEntityManager.persist(createValidUser());
+        testEntityManager.persist(modelFactory.createValidUser());
         assertThatExceptionOfType(javax.persistence.PersistenceException.class).isThrownBy(()->{
-            var user = createValidUser();
+            var user = modelFactory.createValidUser();
             user.setEmail(ANOTHER_VALID_EMAIL);
             testEntityManager.persistAndFlush(user);
         }).withStackTraceContaining(errorMessageKeyword);
 
-    }
-
-    private User createValidUser() {
-        return new User("test@email.com", "password", "username", true);
     }
 
     private User createSecondValidUser() {

@@ -76,6 +76,13 @@ public class Client implements Serializable  {
         this.id = new ID(id, user);
     }
 
+    public Client copyShallow() {
+        Date cBirthday = birthday != null ? new Date(birthday.getTime()) : null;
+        String idStr = id != null ? id.getId() : null;
+        User cUser = id != null ? id.getUser() : null;
+        return new Client(address, cBirthday, email, forename, idStr, name, sex, cUser);
+    }
+
     /**
      *
      * @return The contact address of the client.

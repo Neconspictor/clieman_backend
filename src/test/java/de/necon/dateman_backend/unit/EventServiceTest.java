@@ -1,7 +1,9 @@
 package de.necon.dateman_backend.unit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.exception.ServiceError;
-import de.necon.dateman_backend.factory.ModelFactory;
+import de.necon.dateman_backend.util.Json;
+import de.necon.dateman_backend.util.ModelFactory;
 import de.necon.dateman_backend.model.*;
 import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.EventRepository;
@@ -38,12 +40,22 @@ public class EventServiceTest {
     @Autowired
     EventService eventService;
 
+    @Autowired
+    ModelFactory modelFactory;
+
     @TestConfiguration
     public static class Config {
 
         @Bean
         EventService eventService() {
             return new EventServiceImpl();
+        }
+
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
         }
     }
 
@@ -75,7 +87,7 @@ public class EventServiceTest {
     @Test
     public void getEventsOfUser_notExistingUserThrows() {
 
-        var user = createUser("test@email.com", true, false);
+        var user = modelFactory.createUser("test@email.com", true, false);
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.getEventsOfUser(user);
         }).source();
@@ -95,7 +107,7 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_ValidEvent() {
-        var user = createUser("test@email.com", true, true);
+        var user = modelFactory.createUser("test@email.com", true, true);
         Event event = new Event(null, null, null, new ArrayList<>(),
                 null, "id", null, user);
 
@@ -115,8 +127,8 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_InvalidEvent_NullID() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent(null, user, new ArrayList<>());
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent(null, user, new ArrayList<>());
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.addEvent(event);
@@ -127,8 +139,8 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_InvalidEvent_EmptyID() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("", user, new ArrayList<>());
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("", user, new ArrayList<>());
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.addEvent(event);
@@ -139,8 +151,8 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_InvalidEvent_BlankID() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("  ", user, new ArrayList<>());
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("  ", user, new ArrayList<>());
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.addEvent(event);
@@ -152,8 +164,8 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_Invalid_ClientsNull() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("id", user, null);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("id", user, null);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.addEvent(event);
@@ -164,8 +176,8 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_Ivalid_DisabledUser() {
-        var user = createUser("test@email.com", false, true);
-        Event event = createEvent("id", user, new ArrayList<>());
+        var user = modelFactory.createUser("test@email.com", false, true);
+        Event event = modelFactory.createEvent("id", user, new ArrayList<>());
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.addEvent(event);
@@ -176,8 +188,8 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_NotStoredUserNotAllowed() {
-        var user = createUser("test@email.com", true, false);
-        Event event = createEvent("id", user, new ArrayList<>());
+        var user = modelFactory.createUser("test@email.com", true, false);
+        Event event = modelFactory.createEvent("id", user, new ArrayList<>());
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.addEvent(event);
@@ -189,8 +201,8 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_AlreadyExistingPrimaryKeyNotAllowed() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("id", user, new ArrayList<>());
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("id", user, new ArrayList<>());
 
         eventService.addEvent(event);
 
@@ -203,9 +215,9 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_NotExistingClientsNotAllowed() {
-        var user = createUser("test@email.com", true, true);
-        Client client = createClient("clientID", user, false);
-        Event event = createEvent("id", user, List.of(client));
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Client client = modelFactory.createClient("clientID", user, false);
+        Event event = modelFactory.createEvent("id", user, List.of(client));
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.addEvent(event);
@@ -216,9 +228,9 @@ public class EventServiceTest {
 
     @Test
     public void addEvent_SameUserDifferentIdsAllowed() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("id", user, new ArrayList<>());
-        Event event2 = createEvent("id2", user, new ArrayList<>());
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("id", user, new ArrayList<>());
+        Event event2 = modelFactory.createEvent("id2", user, new ArrayList<>());
 
         eventService.addEvent(event);
         eventService.addEvent(event2);
@@ -236,8 +248,8 @@ public class EventServiceTest {
 
     @Test
     public void removeEvent_EventNotFound() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("id", user, new ArrayList<>());
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("id", user, new ArrayList<>());
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.removeEvent(event);
@@ -249,8 +261,8 @@ public class EventServiceTest {
     @Test
     public void removeEvent_validRemove() {
 
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("id", user, new ArrayList<>(), true);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("id", user, new ArrayList<>(), true);
 
         Assertions.assertTrue(eventRepository.findAll().size() == 1);
         eventService.removeEvent(event);
@@ -268,8 +280,8 @@ public class EventServiceTest {
 
     @Test
     public void updateEvent_NullIDNotAllowed() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent(null, user, new ArrayList<>(), false);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent(null, user, new ArrayList<>(), false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.updateEvent(event);
@@ -280,8 +292,8 @@ public class EventServiceTest {
 
     @Test
     public void updateEvent_invalid_eventNotStored() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("eventID", user, new ArrayList<>(), false);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("eventID", user, new ArrayList<>(), false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.updateEvent(event);
@@ -292,8 +304,8 @@ public class EventServiceTest {
 
     @Test
     public void updateEvent_valid() {
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("eventID", user, new ArrayList<>(), true);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("eventID", user, new ArrayList<>(), true);
 
         //ensure that the event is found
         var storedEvent = eventRepository.findById(event.getId()).get();
@@ -326,8 +338,8 @@ public class EventServiceTest {
     @Test
     public void removeEvent_invalidid() {
 
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent(null, user, new ArrayList<>(), false);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent(null, user, new ArrayList<>(), false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.removeEvent(event);
@@ -339,8 +351,8 @@ public class EventServiceTest {
     @Test
     public void removeEvent_invalidid_user() {
 
-        var user = createUser("test@email.com", true, false);
-        Event event = createEvent("eventID", user, new ArrayList<>(), false);
+        var user = modelFactory.createUser("test@email.com", true, false);
+        Event event = modelFactory.createEvent("eventID", user, new ArrayList<>(), false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.removeEvent(event);
@@ -352,36 +364,11 @@ public class EventServiceTest {
     @Test
     public void removeEvent_valid() {
 
-        var user = createUser("test@email.com", true, true);
-        Event event = createEvent("eventID", user, new ArrayList<>(), true);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        Event event = modelFactory.createEvent("eventID", user, new ArrayList<>(), true);
 
         assertEquals(1, eventRepository.findAllByUser(user).size());
         eventService.removeEvent(event);
         assertEquals(0, eventRepository.findAllByUser(user).size());
-    }
-
-
-    private Client createClient(String id, User user, boolean store) {
-        Client client = new Client(null, null, null,
-                null, id, null, null, user);
-        if (store) client = clientRepository.saveAndFlush(client);
-        return client;
-    }
-
-    private Event createEvent(String id, User user, List<Client> clients, boolean store) {
-         Event event = createEvent(id, user, clients);
-         if (store) event = eventRepository.saveAndFlush(event);
-         return event;
-    }
-
-    private Event createEvent(String id, User user, List<Client> clients) {
-        return new Event(null, null, null, clients,
-                null, id, null, user);
-    }
-
-    private User createUser(String email, boolean enabled, boolean store) {
-        User user = new User(email, "password", null, enabled);
-        if (store) user = userRepository.saveAndFlush(user);
-        return user;
     }
 }

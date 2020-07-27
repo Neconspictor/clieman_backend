@@ -3,11 +3,15 @@ package de.necon.dateman_backend.unit;
 import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.util.ModelFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
@@ -24,19 +28,33 @@ public class ClientRepositoryTest {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    ModelFactory modelFactory;
+
+    @TestConfiguration
+    public static class Config {
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
+
+        }
+    }
+
     @Test
     public void findAllByUser_allClientsForUserReturned() {
 
-        var user1 = createUser("test@email.com");
-        var user2 = createUser("test2@email.com");
-        var user3 = createUser("test3@email.com");
+        var user1 = modelFactory.createUser("test@email.com", true, true);
+        var user2 = modelFactory.createUser("test2@email.com", true, true);
+        var user3 = modelFactory.createUser("test3@email.com", true, true);
 
-        var client11 = createClient("client1", user1);
-        var client12 = createClient("client2", user1);
-        var client13 = createClient("client3", user1);
+        var client11 = modelFactory.createClient("client1", user1, true);
+        var client12 = modelFactory.createClient("client2", user1, true);
+        var client13 = modelFactory.createClient("client3", user1, true);
 
-        var client21 = createClient("client1", user2);
-        var client22 = createClient("client2", user2);
+        var client21 = modelFactory.createClient("client1", user2, true);
+        var client22 = modelFactory.createClient("client2", user2, true);
 
         var result1 = clientRepository.findAllByUser(user1);
         var result2 = clientRepository.findAllByUser(user2);
@@ -48,13 +66,5 @@ public class ClientRepositoryTest {
 
         assertTrue(result1.containsAll(List.of(client11, client12, client13)));
         assertTrue(result2.containsAll(List.of(client21, client22)));
-    }
-
-    private Client createClient(String id, User user) {
-        return clientRepository.saveAndFlush(new Client(null, null, null, null, id, null, null, user));
-    }
-
-    private User createUser(String email) {
-        return userRepository.saveAndFlush(new User(email, "password", null, true));
     }
 }

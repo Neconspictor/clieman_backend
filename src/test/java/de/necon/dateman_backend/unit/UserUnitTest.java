@@ -2,10 +2,17 @@ package de.necon.dateman_backend.unit;
 
 import de.necon.dateman_backend.config.RepositoryConfig;
 import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
+import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.util.ModelFactory;
 import org.apache.commons.text.RandomStringGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
@@ -17,6 +24,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class UserUnitTest {
 
     private static Validator validator;
+
+    @Autowired
+    ModelFactory modelFactory;
+
+    @TestConfiguration
+    public static class Config {
+
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
+        }
+    }
 
     @BeforeAll
     public static void setUp() {
@@ -124,13 +145,6 @@ public class UserUnitTest {
     }
 
     private User createValidUser() {
-        return new User("test@email.com", "password", "username", true);
+        return modelFactory.createUser("test@email.com", true, false);
     }
-
-    private User createSecondValidUser() {
-        return new User(ANOTHER_VALID_EMAIL, "password", "username2", true);
-    }
-
-    private static final String ANOTHER_VALID_EMAIL = "test2@email.com";
-
 }

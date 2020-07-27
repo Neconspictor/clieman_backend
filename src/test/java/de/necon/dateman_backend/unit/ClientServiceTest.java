@@ -6,10 +6,12 @@ import de.necon.dateman_backend.model.ID;
 import de.necon.dateman_backend.model.Sex;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.service.ClientService;
 import de.necon.dateman_backend.service.ClientServiceImpl;
 import de.necon.dateman_backend.util.Asserter;
+import de.necon.dateman_backend.util.ModelFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,9 @@ public class ClientServiceTest {
     @Autowired
     ClientService clientService;
 
+    @Autowired
+    ModelFactory modelFactory;
+
     @TestConfiguration
     public static class Config {
 
@@ -40,31 +45,43 @@ public class ClientServiceTest {
         ClientService clientService() {
             return new ClientServiceImpl();
         }
+
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
+        }
     }
 
 
     @Test
     public void getClientsOfUser_onlyClientsOfUserAreReturned() {
-        var user1 = userRepository.save(new User("test@email.com", "password", "test", true));
-        var user2 = userRepository.save(new User("test2@email.com", "password", "test2", true));
+        var user1 = modelFactory.createUser("test@email.com", true, true);
+        var user2 = modelFactory.createUser("test2@email.com", true, true);
+        var user3 = modelFactory.createUser("test3@email.com", true, true);
 
-        clientRepository.save(new Client("address", new Date(),
-                "client1@email.com", "forename", "client1", "client1", Sex.FEMALE, user1));
-        clientRepository.save(new Client("address", new Date(),
-                "client2@email.com", "forename", "client2", "client2", Sex.FEMALE, user1));
-        clientRepository.save(new Client("address", new Date(),
-                "client3@email.com", "forename", "client3", "client3", Sex.FEMALE, user1));
+        modelFactory.createClient("client1", user1, true);
+        modelFactory.createClient("client2", user1, true);
+        modelFactory.createClient("client3", user1, true);
 
-        clientRepository.save(new Client("address", new Date(),
-                "client5@email.com", "forename", "client4", "client4", Sex.FEMALE, user2));
-        clientRepository.save(new Client("address", new Date(),
-                "client5@email.com", "forename", "client5", "client5", Sex.FEMALE, user2));
+        modelFactory.createClient("client1", user2, true);
+        modelFactory.createClient("client2", user2, true);
 
         var clients = clientService.getClientsOfUser(user1);
         Assertions.assertTrue(clients.size() == 3);
         clients.forEach(client -> {
             Assertions.assertEquals(client.getId().getUser(), user1);
         });
+
+        clients = clientService.getClientsOfUser(user2);
+        Assertions.assertTrue(clients.size() == 2);
+        clients.forEach(client -> {
+            Assertions.assertEquals(client.getId().getUser(), user2);
+        });
+
+        clients = clientService.getClientsOfUser(user3);
+        Assertions.assertTrue(clients.size() == 0);
     }
 
 
@@ -82,9 +99,8 @@ public class ClientServiceTest {
     @Test
     public void getClientsOfUser_NullNotAllowed () {
 
-        User user = null;
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            clientService.getClientsOfUser(user);
+            clientService.getClientsOfUser(null);
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), NO_USER);
@@ -93,17 +109,14 @@ public class ClientServiceTest {
 
     @Test
     public void addClient_NullNotAllowed() {
-        Client client = null;
-
         Asserter.assertException(NullPointerException.class).isThrownBy(()-> {
-            clientService.addClient(client);
+            clientService.addClient(null);
         });
     }
 
     @Test
     public void addClient_InvalidClientNoUser() {
-        Client client = new Client(null, null, null, null,
-                "clientID", null, Sex.DIVERSE, null);
+        var client = modelFactory.createClient("id", null, false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             clientService.addClient(client);
@@ -114,10 +127,8 @@ public class ClientServiceTest {
 
     @Test
     public void addClient_InvalidClientNoID() {
-        var user = userRepository.save(new User("test@email.com", "password",
-                "test", true));
-        Client client = new Client(null, null, null, null,
-                null, null, Sex.DIVERSE, user);
+        var user = modelFactory.createUser("test@email.com", true, true);;
+        var client = modelFactory.createClient(null, user, false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             clientService.addClient(client);
@@ -128,10 +139,8 @@ public class ClientServiceTest {
 
     @Test
     public void addClient_InvalidClientEmptyID() {
-        var user = userRepository.save(new User("test@email.com", "password",
-                "test", true));
-        Client client = new Client(null, null, null, null,
-                "", null, Sex.DIVERSE, user);
+        var user = modelFactory.createUser("test@email.com", true, true);;
+        var client = modelFactory.createClient("", user, false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             clientService.addClient(client);
@@ -143,10 +152,8 @@ public class ClientServiceTest {
 
     @Test
     public void addClient_ValidClient() {
-        var user = userRepository.save(new User("test@email.com", "password",
-                "test", true));
-        Client client = new Client(null, null, null, null,
-                "id", null, Sex.DIVERSE, user);
+        var user = modelFactory.createUser("test@email.com", true, true);;
+        var client = modelFactory.createClient("id", user, false);
 
         clientService.addClient(client);
     }
@@ -156,8 +163,7 @@ public class ClientServiceTest {
     public void addClient_DisabledUserNotAllowed() {
         var user = userRepository.save(new User("test@email.com", "password",
                 "test", false));
-        Client client = new Client(null, null, null, null,
-                "id", null, Sex.DIVERSE, user);
+        var client = modelFactory.createClient("id", user, false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             clientService.addClient(client);
@@ -170,8 +176,7 @@ public class ClientServiceTest {
     public void addClient_NotStoredUserNotAllowed() {
         var user = new User("test@email.com", "password",
                 "test", true);
-        Client client = new Client(null, null, null, null,
-                "id", null, Sex.DIVERSE, user);
+        var client = modelFactory.createClient("id", user, false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             clientService.addClient(client);
@@ -183,14 +188,11 @@ public class ClientServiceTest {
 
     @Test
     public void addClient_AlreadyExistingPrimaryKeyNotAllowed() {
-        var user = userRepository.save(new User("test@email.com", "password",
-                "test", true));
+        var user = modelFactory.createUser("test@email.com", true, true);;
         String id = "id";
 
-        var client = new Client(null, null, null, null,
-                id, null, Sex.DIVERSE, user);
-        var client2 = new Client("address", null, null, null,
-                id, "client 2", Sex.DIVERSE, user);
+        var client = modelFactory.createClient(id, user, false);
+        var client2 = modelFactory.createClient(id, user, false);
 
         clientService.addClient(client);
 
@@ -203,13 +205,10 @@ public class ClientServiceTest {
 
     @Test
     public void addClient_SameUserDifferentIdsAllowed() {
-        var user = userRepository.save(new User("test@email.com", "password",
-                "test", true));
+        var user = modelFactory.createUser("test@email.com", true, true);;
 
-        var client = new Client(null, null, null, null,
-                "id1", null, Sex.DIVERSE, user);
-        var client2 = new Client("address", null, null, null,
-                "id2", "client 2", Sex.DIVERSE, user);
+        var client = modelFactory.createClient("id1", user, false);
+        var client2 = modelFactory.createClient("id2", user, false);
 
         clientService.addClient(client);
         clientService.addClient(client2);
@@ -226,8 +225,7 @@ public class ClientServiceTest {
     @Test
     public void removeClient_ClientNotFound() {
 
-        var client = new Client(null, null, null, null,
-                "id1", null, Sex.DIVERSE, null);
+        var client = modelFactory.createClient("id", null, false);
 
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
@@ -240,8 +238,8 @@ public class ClientServiceTest {
     @Test
     public void removeClient_clientWillBeRemoved() {
 
-        var user = createAndSaveUser("test@email.com", "test");
-        var client = createAndAddClient("id", user);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var client = modelFactory.createClient("id", user, true);
 
         Assertions.assertTrue(clientRepository.findAll().size() == 1);
         clientService.removeClient(client);
@@ -252,7 +250,7 @@ public class ClientServiceTest {
 
     @Test
     public void updateClient_ClientNullNotAllowed() {
-        var user = createAndSaveUser("test@email.com", "test");
+        var user = modelFactory.createUser("test@email.com", true, true);
 
         Asserter.assertException(NullPointerException.class).isThrownBy(()->{
             clientService.updateClient(null, new ID("id", user));
@@ -261,7 +259,7 @@ public class ClientServiceTest {
 
     @Test
     public void updateClient_ClientIDNullNotAllowed() {
-        var user = createAndSaveUser("test@email.com", "test");
+        var user = modelFactory.createUser("test@email.com", true, true);
 
         var client = new Client(null, null, null, null,
                 "id", null, Sex.DIVERSE, user);
@@ -274,15 +272,15 @@ public class ClientServiceTest {
 
     @Test
     public void updateClient_clientIsUpdated() {
-        var user = createAndSaveUser("test@email.com", "test");
-        var client = createAndAddClient("id", user);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var client = modelFactory.createClient("id", user, true);
 
         //ensure that the client is found
        var storedClient = clientRepository.findById(client.getId()).get();
        Assertions.assertEquals(client, storedClient);
 
        //now change the client and assert that the changes will be adopted.
-
+        client = client.copyShallow();
         client.setAddress("new address");
         client.setBirthday(new Date());
 
@@ -296,8 +294,8 @@ public class ClientServiceTest {
 
     @Test
     public void updateClient_clientWithUpdatedIDIsAllowed() {
-        var user = createAndSaveUser("test@email.com", "test");
-        var client = createAndAddClient("id", user);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var client = modelFactory.createClient("id", user, true).copyShallow();
 
         //now change the client and assert that the changes will be adopted.
 
@@ -318,9 +316,9 @@ public class ClientServiceTest {
      */
     @Test
     public void updateClient_updatedIDFailsIfAlreadyExsists() {
-        var user = createAndSaveUser("test@email.com", "test");
-        var client = createAndAddClient("id", user);
-        createAndAddClient("another id", user);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var client = modelFactory.createClient("id", user, true);
+        modelFactory.createClient("another id", user, true);
 
         //now change the client and assert that the changes will be adopted.
 
@@ -343,9 +341,9 @@ public class ClientServiceTest {
      */
     @Test
     public void updateClient_changingUserIsNotAllowed() {
-        var user = createAndSaveUser("test@email.com", "test");
-        var user2 = createAndSaveUser("test2@email.com", "test2");
-        var client = createAndAddClient("id", user);
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var user2 = modelFactory.createUser("test2@email.com", true, true);
+        var client = modelFactory.createClient("id", user, true);
         //now change the client and assert that the changes will be adopted.
 
         client.setAddress("new address");
@@ -358,19 +356,5 @@ public class ClientServiceTest {
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), CLIENT_CHANGING_USER_NOT_ALLOWED);
-    }
-
-
-    private User createAndSaveUser(String email, String username) {
-        return userRepository.saveAndFlush(new User(email, "password",
-                username, true));
-    }
-
-    private Client createAndAddClient(String id, User user) {
-        var client = new Client(null, null, null, null,
-                id, null, null, user);
-
-        clientService.addClient(client);
-        return client;
     }
 }

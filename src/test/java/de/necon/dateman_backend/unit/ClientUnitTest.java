@@ -1,19 +1,24 @@
 package de.necon.dateman_backend.unit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.necon.dateman_backend.util.ModelFactory;
 import de.necon.dateman_backend.model.Client;
-import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
+import de.necon.dateman_backend.repository.UserRepository;
+import de.necon.dateman_backend.util.Json;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.Date;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.INVALID_ID;
@@ -28,6 +33,27 @@ public class ClientUnitTest {
     @Autowired
     ObjectMapper mapper;
 
+    @Autowired
+    Json json;
+
+    @Autowired
+    ModelFactory modelFactory;
+
+    @TestConfiguration
+    public static class Config {
+        @Bean
+        Json json(@Autowired ObjectMapper mapper) {
+            return new Json(mapper);
+        }
+
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
+        }
+    }
+
     @BeforeAll
     public static void setUp() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
@@ -38,9 +64,8 @@ public class ClientUnitTest {
     @Test
     public void valid() {
 
-        var user = createUser("test@email.com", "test");
-
-        Client client = createClient("client id", user);
+        var user = modelFactory.createUser("test@email.com", true, false);
+        Client client = modelFactory.createClient("client id", user, false);
 
         var violations = validator.validate(client);
         assertTrue(violations.size() == 0);
@@ -49,7 +74,7 @@ public class ClientUnitTest {
     @Test
     public void validationForUserWorks() {
 
-        Client client = createClient("client id", null);
+        Client client = modelFactory.createClient("client id", null, false);
 
         var violations = validator.validate(client);
         assertTrue(violations.size() == 1);
@@ -61,8 +86,8 @@ public class ClientUnitTest {
     @Test
     public void validationForIDWorks() {
 
-        var user = createUser("test@email.com", "test");
-        Client client = createClient(null, user);
+        var user = modelFactory.createUser("test@email.com", true, false);
+        Client client = modelFactory.createClient(null, user, false);
 
         var violations = validator.validate(client);
         assertTrue(violations.size() == 1);
@@ -73,34 +98,33 @@ public class ClientUnitTest {
     @Test
     public void userIsIgnoredByJSON() throws IOException {
 
-        var user = createUser("test@email.com", "test");
-        var client = createClient("client id", user);
+        var user = modelFactory.createUser("test@email.com", true, false);
+        var client = modelFactory.createClient("client id", user, false);
 
         assertEquals(user, client.getId().getUser());
 
-        var deserializedClient = deserialize(serialize(client));
+        var deserializedClient = json.deserialize(json.serialize(client), Client.class);
 
         assertEquals(null, deserializedClient.getId().getUser());
     }
 
 
     /**
-     * Ensures that the id field is serialized using the following scheme:
-     * "id" : "id of the client"
-     * @throws IOException
+     * Ensures that the serialization works as expected.
+     * @throws IOException if an io error occurs.
      */
     @Test
     public void serialization_valid() throws IOException {
 
-        var user = createUser("test@email.com", "test");
-        var client = createClient("cool id of the client", user);
+        var user = modelFactory.createUser("test@email.com", true, false);
+        var client = modelFactory.createClient("cool id of the client", user, false);
         client.setBirthday(new Date(100));
         client.setEmail("email");
         client.setAddress("address");
         client.setForename("forename of client");
         client.setName("family name of client");
 
-        var serialized = serialize(client);
+        var serialized = json.serialize(client);
 
         String expected = "{\"id\":\"" + client.getId().getId() + "\""
                 + ",\"address\":\"" + client.getAddress() + "\""
@@ -116,38 +140,13 @@ public class ClientUnitTest {
     @Test
     public void id_isCustomDeserialized() throws IOException {
 
-        var user = createUser("test@email.com", "test");
-        var client = createClient("cool id of the client", user);
+        var user = modelFactory.createUser("test@email.com", true, false);
+        var client = modelFactory.createClient("cool id of the client", user, false);
 
-        var deserialized = deserialize(serialize(client));
+        var deserialized = json.deserialize(json.serialize(client), Client.class);
         //Note: user field gets lost!
         deserialized.getId().setUser(user);
         assertEquals(deserialized, client);
 
-    }
-
-    private String serialize(Client client) throws IOException {
-        StringWriter writer = new StringWriter();
-        mapper.writeValue(writer, client);
-        return writer.toString();
-    }
-
-    private Client deserialize(String serialized) throws IOException {
-        return mapper.readValue(serialized, Client.class);
-    }
-
-    private static Client createClient(String id, User user) {
-        return new Client(null,
-                null,
-                null,
-                null,
-                id,
-                null,
-                null,
-                user);
-    }
-
-    private static User createUser(String email, String username) {
-        return new User(email, "password", username, true);
     }
 }

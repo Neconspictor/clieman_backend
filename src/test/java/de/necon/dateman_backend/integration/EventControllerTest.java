@@ -3,7 +3,7 @@ package de.necon.dateman_backend.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.necon.dateman_backend.factory.ModelFactory;
+import de.necon.dateman_backend.util.ModelFactory;
 import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.User;

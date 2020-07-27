@@ -6,13 +6,18 @@ import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.network.ErrorListDto;
+import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.service.ClientService;
 import de.necon.dateman_backend.service.JWTTokenService;
+import de.necon.dateman_backend.util.ModelFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
@@ -55,6 +60,21 @@ public class ClientControllerTest {
     @Autowired
     private ClientService clientService;
 
+    @Autowired
+    ModelFactory modelFactory;
+
+    @TestConfiguration
+    public static class Config {
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
+
+        }
+    }
+
+
 
     @Test
     public void getClients_notAuthenticated() throws Exception {
@@ -81,8 +101,8 @@ public class ClientControllerTest {
         var enabledUser = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(enabledUser);
-        createAndAddClient("client1", enabledUser);
-        createAndAddClient("client2", enabledUser);
+        modelFactory.createClient("client1", enabledUser, true);
+        modelFactory.createClient("client2", enabledUser, true);
 
         var response = getClients(tokenService.createToken(enabledUser));
         assertTrue(response.getStatus() == HttpStatus.OK.value());
@@ -102,7 +122,7 @@ public class ClientControllerTest {
         var user = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(user);
-        var client = createClient("client1", user);
+        var client = modelFactory.createClient("client1", user, false);
 
         var response = addClient(client, tokenService.createToken(user));
         assertTrue(response.getStatus() == HttpStatus.OK.value());
@@ -120,7 +140,7 @@ public class ClientControllerTest {
         var user = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(user);
-        var client = createClient("client1", user);
+        var client = modelFactory.createClient("client1", user, false);
 
         var response = addClient(client, tokenService.createToken(user));
         assertTrue(response.getStatus() == HttpStatus.OK.value());
@@ -136,7 +156,7 @@ public class ClientControllerTest {
         var user = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(user);
-        var client = createAndAddClient("client1", user);
+        var client = modelFactory.createClient("client1", user, true);
 
         var response = removeClient(client, tokenService.createToken(user));
         assertTrue(response.getStatus() == HttpStatus.OK.value());
@@ -150,7 +170,7 @@ public class ClientControllerTest {
         var user = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(user);
-        var client = createClient("client1", user);
+        var client = modelFactory.createClient("client1", user, false);
 
         var response = removeClient(client, tokenService.createToken(user));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
@@ -164,8 +184,8 @@ public class ClientControllerTest {
         var user = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(user);
-        var client = createAndAddClient("client1", user);
-        var client2 = createClient("client1", user);
+        var client = modelFactory.createClient("client1", user, true);
+        var client2 = modelFactory.createClient("client1", user, false);
 
         //change any field
         client2.setEmail("client@email.com");
@@ -184,7 +204,7 @@ public class ClientControllerTest {
         var user = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(user);
-        var client = createClient("client1", user);
+        var client = modelFactory.createClient("client1", user, false);
 
         var response = updateClient(client, tokenService.createToken(user));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
@@ -198,7 +218,7 @@ public class ClientControllerTest {
         var user = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(user);
-        var client = createClient(null, user);
+        var client = modelFactory.createClient(null, user, false);
 
         var response = updateClient(client, tokenService.createToken(user));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
@@ -212,7 +232,7 @@ public class ClientControllerTest {
         var user = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(user);
-        var client = createClient("", user);
+        var client = modelFactory.createClient("", user, false);
 
         var response = updateClient(client, tokenService.createToken(user));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
@@ -226,27 +246,13 @@ public class ClientControllerTest {
         var user = new User("test@email.com",
                 "password", "test", true);
         userRepository.saveAndFlush(user);
-        var client = createClient("   ", user);
+        var client = modelFactory.createClient("   ", user, false);
 
         var response = updateClient(client, tokenService.createToken(user));
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
         assertEquals(CLIENT_NOT_FOUND, errorList.getErrors().get(0));
-    }
-
-
-    private Client createAndAddClient(String id, User user) {
-        var client = new Client(null, null, null, null,
-                id, null, null, user);
-
-        clientService.addClient(client);
-        return client;
-    }
-
-    private Client createClient(String id, User user) {
-        return new Client(null, null, null, null,
-                id, null, null, user);
     }
 
 
