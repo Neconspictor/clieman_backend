@@ -30,7 +30,7 @@ public class EventController {
     @PostMapping("/events/add")
     Event addEvent(@RequestBody Event event) {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
-        event.getId().setUser(user);
+        event.setUser(user);
         return eventService.addEvent(event);
     }
 

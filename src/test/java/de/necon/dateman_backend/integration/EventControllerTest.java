@@ -1,9 +1,11 @@
 package de.necon.dateman_backend.integration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.factory.ModelFactory;
 import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
+import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.ClientRepository;
@@ -109,10 +111,31 @@ public class EventControllerTest {
 
         for (var event : events) {
             assertEquals(null, event.getId().getUser());
+
+            event.getClients().forEach(c -> {
+                assertEquals(null, c.getId().getUser());
+            });
         }
     }
 
+    @Test
+    public void addEvent_valid() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var clients = modelFactory.createClients(3, user, true);
+        var event = modelFactory.createEvent("eventID", user, clients, false);
 
+        var response = addEvent(event, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        Event deserialized = deserialize(response.getContentAsString());
+        deserialized.setUser(user);
+
+        assertEquals(event, deserialized);
+    }
+
+    private Event deserialize(String serialized) throws JsonProcessingException {
+        return mapper.readValue(serialized, Event.class);
+    }
 
     private MockHttpServletResponse getEvents(String token) throws Exception {
         var header = JWTTokenService.createTokenHeader(token);

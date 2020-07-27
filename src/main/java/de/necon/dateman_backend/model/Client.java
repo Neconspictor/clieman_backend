@@ -159,6 +159,16 @@ public class Client implements Serializable  {
         this.name = name;
     }
 
+    @JsonIgnore
+    public User getUser() {
+        return id.getUser();
+    }
+
+    @JsonIgnore
+    public void setUser(User user) {
+        id.setUser(user);
+    }
+
     @Override
     public String toString() {
 

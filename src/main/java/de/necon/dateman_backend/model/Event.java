@@ -1,5 +1,6 @@
 package de.necon.dateman_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -194,6 +195,17 @@ public class Event implements Serializable  {
         this.start = start;
     }
 
+    @JsonIgnore
+    public User getUser() {
+        return id.getUser();
+    }
+
+    @JsonIgnore
+    public void setUser(User user) {
+        id.setUser(user);
+        propagateUser();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -245,6 +257,12 @@ public class Event implements Serializable  {
                 ", id=" + id +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    private void propagateUser() {
+        clients.forEach(c->{
+            c.setUser(getUser());
+        });
     }
 
 
