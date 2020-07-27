@@ -23,8 +23,6 @@ public interface EventService {
      * @param event The client to be added.
      * @throws ServiceError If event is null or if the event is not valid or another event with the same (id, user)
      * primary key exists already.
-     * @throws ConstraintViolationException If the event is not valid
-     * @throws DataIntegrityViolationException If the event is not valid
      */
     Event addEvent(Event event) throws ServiceError;
 

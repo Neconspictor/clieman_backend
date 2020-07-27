@@ -27,4 +27,8 @@ public class ServiceErrorMessages {
     public static final String CLIENT_ALREADY_EXISTS = "ClientAlreadyExists";
     public static final String CLIENT_CHANGING_USER_NOT_ALLOWED = "ClientChangingUserNotAllowed";
     public static final String INVALID_ID = "InvalidId";
+
+    public static final String NO_EVENT = "NoEvent";
+    public static final String EVENT_ALREADY_EXISTS = "EventAlreadyExists";
+    public static final String EVENT_NOT_FOUND = "EventNotFound";
 }

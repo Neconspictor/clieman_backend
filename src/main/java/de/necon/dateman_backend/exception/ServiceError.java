@@ -14,6 +14,12 @@ public class ServiceError extends RuntimeException {
 
     }
 
+    public ServiceError(List<String> errors, Throwable cause) {
+        this((String)null, cause);
+        addErrors(errors);
+
+    }
+
     public ServiceError(String message) {
         this(message, null);
     }
