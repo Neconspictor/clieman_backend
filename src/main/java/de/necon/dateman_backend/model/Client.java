@@ -8,7 +8,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -76,28 +75,6 @@ public class Client implements Serializable  {
         this.sex = sex;
         this.id = new ID(id, user);
     }
-
-    /*public Client(
-            @JsonProperty("address") String address,
-            @JsonProperty("birthday") Date birthday,
-            @JsonProperty("email") String email,
-            @JsonProperty("forename") String forename,
-            @JsonProperty("id") ID id,
-            @JsonProperty("name") String name,
-            @JsonProperty("sex") Sex sex)
-    {
-        this.address = address;
-        this.birthday = birthday;
-        this.email = email;
-        this.forename = forename;
-        this.id = id;
-        this.name = name;
-        this.sex = sex;
-
-        // ensure that id is not null
-        if (this.id == null)
-            this.id = new ID();
-    }*/
 
     /**
      *

@@ -14,6 +14,7 @@ import javax.validation.ValidatorFactory;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Date;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.INVALID_ID;
 import static de.necon.dateman_backend.config.ServiceErrorMessages.NO_USER;
@@ -77,9 +78,7 @@ public class ClientUnitTest {
 
         assertEquals(user, client.getId().getUser());
 
-        StringWriter writer = new StringWriter();
-        mapper.writeValue(writer, client);
-        var deserializedClient = mapper.readValue(writer.toString(), Client.class);
+        var deserializedClient = deserialize(serialize(client));
 
         assertEquals(null, deserializedClient.getId().getUser());
     }
@@ -91,17 +90,25 @@ public class ClientUnitTest {
      * @throws IOException
      */
     @Test
-    public void id_isCustomSerialized() throws IOException {
+    public void serialization_valid() throws IOException {
 
         var user = createUser("test@email.com", "test");
         var client = createClient("cool id of the client", user);
+        client.setBirthday(new Date(100));
+        client.setEmail("email");
+        client.setAddress("address");
+        client.setForename("forename of client");
+        client.setName("family name of client");
 
-        StringWriter writer = new StringWriter();
-        mapper.writeValue(writer, client);
+        var serialized = serialize(client);
 
-        var serialized = writer.toString();
-
-        String expected = "{\"id\":\"" + client.getId().getId() + "\"}";
+        String expected = "{\"id\":\"" + client.getId().getId() + "\""
+                + ",\"address\":\"" + client.getAddress() + "\""
+                + ",\"birthday\":" + client.getBirthday().getTime()
+                + ",\"email\":\"" + client.getEmail() + "\""
+                + ",\"forename\":\"" + client.getForename() + "\""
+                + ",\"name\":\"" + client.getName() + "\""
+                 + "}";
 
         assertEquals(expected, serialized);
     }
@@ -112,16 +119,21 @@ public class ClientUnitTest {
         var user = createUser("test@email.com", "test");
         var client = createClient("cool id of the client", user);
 
-        StringWriter writer = new StringWriter();
-        mapper.writeValue(writer, client);
-
-        var serialized = writer.toString();
-
-        var deserialized = mapper.readValue(serialized, Client.class);
+        var deserialized = deserialize(serialize(client));
         //Note: user field gets lost!
         deserialized.getId().setUser(user);
         assertEquals(deserialized, client);
 
+    }
+
+    private String serialize(Client client) throws IOException {
+        StringWriter writer = new StringWriter();
+        mapper.writeValue(writer, client);
+        return writer.toString();
+    }
+
+    private Client deserialize(String serialized) throws IOException {
+        return mapper.readValue(serialized, Client.class);
     }
 
     private static Client createClient(String id, User user) {
