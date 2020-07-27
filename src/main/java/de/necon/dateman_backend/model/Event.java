@@ -3,6 +3,13 @@ package de.necon.dateman_backend.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -10,6 +17,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -17,6 +25,8 @@ import java.util.*;
 @JsonInclude(JsonInclude.Include.NON_NULL) //This ensures that only non null fields get serialized
 public class Event implements Serializable  {
 
+    @JsonSerialize(contentUsing=ClientSerializer.class) //Note: We only want to serialize the client id string
+    @JsonDeserialize(contentUsing = ClientDeserializer.class)
     @ManyToMany
     @JoinTable(
             name="EVENT_CLIENTS",
@@ -209,5 +219,30 @@ public class Event implements Serializable  {
                 ", id=" + id +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+
+    public static class ClientSerializer extends JsonSerializer<Client> {
+
+        @Override
+        public void serialize(Client value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeString(value.getId().getId());
+        }
+    }
+
+    public static class ClientDeserializer extends JsonDeserializer<Client> {
+
+        @Override
+        public Client deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+
+            return new Client(null,
+                    null,
+                    null,
+                    null,
+                    p.readValueAs(String.class),
+                    null,
+                    null,
+                    null);
+        }
     }
 }
