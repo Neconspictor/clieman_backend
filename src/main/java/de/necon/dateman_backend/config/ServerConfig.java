@@ -17,7 +17,10 @@ public class ServerConfig {
     @Autowired
     Environment env;
 
-    @Bean
+    /**
+     * A custom tomcat configuration that adds http->https redirection
+     */
+    /*@Bean
     public ServletWebServerFactory servletContainer() {
         TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() {
             @Override
@@ -32,7 +35,7 @@ public class ServerConfig {
         };
         tomcat.addAdditionalTomcatConnectors(getHttpConnector());
         return tomcat;
-    }
+    }*/
 
     private Connector getHttpConnector() {
         Connector connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);

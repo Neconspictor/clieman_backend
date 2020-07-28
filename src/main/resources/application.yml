@@ -45,6 +45,7 @@ spring:
 server:
 
   ssl:
+    enabled: false
     key-store: classpath:dateman_backend_keystore.p12
     key-store-password: ${dateman.DATEMAN_KEYSTORE_PASSWORD}
     key-store-type: pkcs12
