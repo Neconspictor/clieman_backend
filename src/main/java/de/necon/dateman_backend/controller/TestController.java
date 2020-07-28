@@ -11,12 +11,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestController {
 
     @RequestMapping(path = "/test", method = RequestMethod.GET)
-    public String privateTestEndpoint() {
-        return "private test endpoint.";
+    public PrivateResponseDto privateTestEndpoint() {
+        return new PrivateResponseDto();
     }
 
     @RequestMapping(path = "/public/test", method = RequestMethod.GET)
     public String publicTestEndpoint() {
         return "public test endpoint.";
+    }
+
+    private static class PrivateResponseDto {
+        public String msg;
+
+        public PrivateResponseDto() {
+            this.msg = "private endpoint";
+        }
     }
 }

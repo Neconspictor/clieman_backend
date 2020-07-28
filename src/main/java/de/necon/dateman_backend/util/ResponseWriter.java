@@ -18,6 +18,13 @@ public class ResponseWriter {
         this.objectMapper = objectMapper;
     }
 
+
+    public void writeOkRequest(Object object, final HttpServletResponse response) throws IOException {
+        response.addHeader("Content-type", "application/json");
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), object);
+    }
+
     /**
      * Writes an object as an JSON object and sets the http status to BAD REQUEST (400)
      * @param object The response, that will be written in JSON format.
@@ -25,6 +32,7 @@ public class ResponseWriter {
      * @throws IOException If an unexpected io error occurs.
      */
     public void writeBadRequest(Object object, final HttpServletResponse response) throws IOException {
+        response.addHeader("Content-type", "application/json");
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         objectMapper.writeValue(response.getWriter(), object);
     }

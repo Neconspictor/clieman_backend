@@ -85,7 +85,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         res.addHeader(tokenHeader.getValue0(), tokenHeader.getValue1());
 
         LoginResponseDto body = new LoginResponseDto(user.getEmail(), user.getUsername());
-        objectMapper.writeValue(res.getWriter(), body);
+        responseWriter.writeOkRequest(body, res);
 
         super.successfulAuthentication(req, res, chain, auth);
     }
