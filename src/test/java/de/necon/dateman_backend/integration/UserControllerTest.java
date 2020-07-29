@@ -9,6 +9,7 @@ import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.extensions.TestSmtpServer;
 import de.necon.dateman_backend.model.User;
+import de.necon.dateman_backend.service.JWTTokenService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -51,6 +52,9 @@ public class UserControllerTest {
 
     @Autowired
     VerificationTokenRepository tokenRepository;
+
+    @Autowired
+    JWTTokenService tokenService;
 
     private static TestSmtpServer testSmtpServer;
 
@@ -394,6 +398,42 @@ public class UserControllerTest {
         assertEquals(0, messages.length);
     }
 
+    @Test
+    public void changePassword_valid() throws Exception {
+
+        var oldPassword = "password";
+        var newPassword = "newPassword";
+
+        var user = new User("test@email.com", encoder.encode(oldPassword), null, true);
+        user = userRepository.save(user);
+
+        var dto = new PasswordChangeDto(oldPassword, newPassword, newPassword);
+
+        var response = changePassword(dto, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        var encodedPassword = userRepository.findById(user.getId()).get().getPassword();
+        assertTrue(encoder.matches(newPassword, encodedPassword));
+    }
+
+    @Test
+    public void changePassword_invalid() throws Exception {
+
+        var oldPassword = "password";
+        var newPassword = "newPassword";
+
+        var user = new User("test@email.com", encoder.encode(oldPassword), null, true);
+        user = userRepository.save(user);
+
+        var dto = new PasswordChangeDto(oldPassword + "dfdf", newPassword, newPassword);
+
+        var response = changePassword(dto, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        errorList.getErrors().get(0).equals(ServiceErrorMessages.OLD_PASSWORD_NOT_MATCHING);
+    }
+
 
     private MockHttpServletResponse confirmUser(TokenDto tokenDto) throws Exception {
         var writer = new StringWriter();
@@ -423,6 +463,17 @@ public class UserControllerTest {
         if (emailDto != null)
             objectMapper.writeValue(writer, emailDto);
         return mvc.perform(post("/public/sendVerificationCode").secure(true).contentType("application/json")
+                .content(writer.toString())).andReturn().getResponse();
+    }
+
+    private MockHttpServletResponse changePassword(PasswordChangeDto dto, String token) throws Exception {
+        var header = JWTTokenService.createTokenHeader(token);
+        var writer = new StringWriter();
+        objectMapper.writeValue(writer, dto);
+        return mvc.perform(post("/user/changePassword")
+                .header(header.getValue0(), header.getValue1())
+                .secure(true)
+                .contentType("application/json")
                 .content(writer.toString())).andReturn().getResponse();
     }
 }

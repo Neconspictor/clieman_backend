@@ -2,16 +2,14 @@ package de.necon.dateman_backend.controller;
 
 import de.necon.dateman_backend.events.OnSendVerificationCodeEvent;
 import de.necon.dateman_backend.exception.ServiceError;
-import de.necon.dateman_backend.network.EmailDto;
-import de.necon.dateman_backend.network.RegisterResponseDto;
-import de.necon.dateman_backend.network.RegisterUserDto;
-import de.necon.dateman_backend.network.TokenDto;
+import de.necon.dateman_backend.network.*;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.service.UserService;
 import de.necon.dateman_backend.util.ResponseWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -77,6 +75,19 @@ public class UserController {
         try {
             var user = userService.getDisabledUserByEmail(emailDto);
             eventPublisher.publishEvent(new OnSendVerificationCodeEvent(user));
+        } catch(ServiceError e) {
+            responseWriter.writeJSONErrors(e.getErrors(), response);
+        }
+    }
+
+
+    @PostMapping("/user/changePassword")
+    public void changePassword(@RequestBody PasswordChangeDto dto, final HttpServletResponse response) throws IOException {
+
+        var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+
+        try {
+            userService.changePassword(user, dto);
         } catch(ServiceError e) {
             responseWriter.writeJSONErrors(e.getErrors(), response);
         }
