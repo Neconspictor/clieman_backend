@@ -33,4 +33,8 @@ public class ServiceErrorMessages {
     public static final String EVENT_ALREADY_EXISTS = "EventAlreadyExists";
     public static final String EVENT_NOT_FOUND = "EventNotFound";
     public static final String EVENT_NOT_VALID = "EventNotValid";
+
+    public static final String OLD_PASSWORD_NOT_MATCHING = "OldPasswordNotMatching";
+    public static final String NEW_PASSWORD_CONFIRMATION_NOT_MATCHING = "NewPasswordConfirmationNotMatching";
+    public static final String MALFORMED_DATA = "MalformedData";
 }

@@ -1,5 +1,6 @@
 package de.necon.dateman_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.necon.dateman_backend.config.RepositoryConfig;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.annotations.GenericGenerator;
@@ -121,6 +122,11 @@ public class User {
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    @JsonIgnore
+    public boolean isDisabled() {
+        return !enabled;
     }
 
     public void setEmail(String email) {

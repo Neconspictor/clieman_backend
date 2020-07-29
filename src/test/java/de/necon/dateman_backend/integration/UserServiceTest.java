@@ -5,6 +5,7 @@ import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
+import de.necon.dateman_backend.network.PasswordChangeDto;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
@@ -13,12 +14,12 @@ import de.necon.dateman_backend.service.UserService;
 import de.necon.dateman_backend.util.Asserter;
 import org.apache.commons.text.RandomStringGenerator;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -49,6 +50,9 @@ public class UserServiceTest {
 
     @Autowired
     private VerificationTokenRepository tokenRepository;
+
+    @Autowired
+    private PasswordEncoder encoder;
 
 
     @Test
@@ -458,5 +462,143 @@ public class UserServiceTest {
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void changePassword_invalid_userNull() {
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(null, new PasswordChangeDto(
+                    "old", "new", "new"));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void changePassword_invalid_userIdNull() {
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(new User(), new PasswordChangeDto(
+                    "old", "new", "new"));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void changePassword_invalid_userIdNotExisting() {
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            var user = new User();
+            user.setId(933L);
+            userService.changePassword(user, new PasswordChangeDto(
+                    "old", "new", "new"));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void changePassword_invalid_oldPasswordNotMatching() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                encoder.encode("password"), null, true));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(user, new PasswordChangeDto(
+                    "password2", "new", "new"));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), OLD_PASSWORD_NOT_MATCHING);
+    }
+
+    @Test
+    public void changePassword_invalid_UserDisabled() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com", "oldPassword",
+                null, false));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(user, new PasswordChangeDto(
+                    "old", "new", "new"));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_IS_DISABLED);
+    }
+
+    @Test
+    public void changePassword_invalid_anythingNullInDto() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                encoder.encode("password"), null, true));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(user, null);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), MALFORMED_DATA);
+
+        serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(user, new PasswordChangeDto(
+                    null, "new", "new"));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), MALFORMED_DATA);
+
+        serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(user, new PasswordChangeDto(
+                    "password", null, "newPassword"));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), MALFORMED_DATA);
+
+        serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(user, new PasswordChangeDto(
+                    "password", "newPassword", null));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), MALFORMED_DATA);
+    }
+
+
+    @Test
+    public void changePassword_invalid_newPasswordConfirmationNotMatching() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                encoder.encode("password"), null, true));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(user, new PasswordChangeDto("password",
+                    "newPassword", "newPassword2"));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), NEW_PASSWORD_CONFIRMATION_NOT_MATCHING);
+    }
+
+    @Test
+    public void changePassword_invalid_newPasswordTooShort() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                encoder.encode("password"), null, true));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changePassword(user, new PasswordChangeDto("password",
+                    "new", "new"));
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), PASSWORD_TOO_SHORT);
+    }
+
+    @Test
+    public void changePassword_valid() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                encoder.encode("password"), null, true));
+        var dto = new PasswordChangeDto("password",
+                "newPassword", "newPassword");
+
+        userService.changePassword(user, dto);
+        var storedUser = userRepository.findById(user.getId()).get();
+        var newPassword = dto.getNewPassword();
+
+        assertTrue(encoder.matches(newPassword, storedUser.getPassword()));
     }
 }

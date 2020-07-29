@@ -2,6 +2,7 @@ package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
 import de.necon.dateman_backend.network.EmailDto;
+import de.necon.dateman_backend.network.PasswordChangeDto;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
@@ -191,5 +192,40 @@ public class UserServiceImpl implements UserService {
                 throw new ServiceError(TOKEN_IS_NOT_VALID);
             }
             return optional.get();
+    }
+
+    @Override
+    public void changePassword(User user, PasswordChangeDto dto) throws ServiceError {
+
+        if (user == null || user.getId() == null) throw new ServiceError(USER_NOT_FOUND);
+        var optionalUser = userRepository.findById(user.getId());
+        if (optionalUser.isEmpty()) throw new ServiceError(USER_NOT_FOUND);
+
+        user = optionalUser.get();
+        if (user.isDisabled()) throw new ServiceError(USER_IS_DISABLED);
+
+        if (dto == null
+        || dto.getOldPassword() == null
+        || dto.getNewPassword() == null
+        || dto.getConfirmationPassword() == null)
+            throw new ServiceError(MALFORMED_DATA);
+
+        if (!encoder.matches(dto.getOldPassword(), user.getPassword())) {
+            throw new ServiceError(OLD_PASSWORD_NOT_MATCHING);
+        }
+
+        var newPassword = dto.getNewPassword();
+
+        if (newPassword.length() < User.MIN_PASSWORD_LENGTH) {
+            throw new ServiceError(PASSWORD_TOO_SHORT);
+        }
+
+        if (!newPassword.equals(dto.getConfirmationPassword())) {
+            throw new ServiceError(NEW_PASSWORD_CONFIRMATION_NOT_MATCHING);
+        }
+
+        newPassword = encoder.encode(newPassword);
+        user.setPassword(newPassword);
+        userRepository.saveAndFlush(user);
     }
 }

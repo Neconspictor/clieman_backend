@@ -2,6 +2,7 @@ package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
 import de.necon.dateman_backend.network.EmailDto;
+import de.necon.dateman_backend.network.PasswordChangeDto;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
@@ -99,8 +100,11 @@ public interface UserService {
     VerificationToken getVerificationToken(String verificationToken) throws ServiceError;
 
     /**
-     * Sends a verification to the email address of a disabled user.
-     * @param emailDto The email address data of the disabled user.
-     * @throws ServiceError If the given email does not match an existing disabled user.
+     * Changes the password of a user.
+     * @param dto The password change request.
+     * @throws ServiceError If the old password does not match with the stored old password; if the confirmation password
+     * does not match the new password; if the user is not enabled or does not exist;
+     * if the dto or any of its data is null.
      */
+    void changePassword(User user, PasswordChangeDto dto) throws ServiceError;
 }
