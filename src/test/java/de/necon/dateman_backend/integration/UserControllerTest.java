@@ -365,6 +365,22 @@ public class UserControllerTest {
     }
 
     @Test
+    public void sendVerificationCode_invalid_enabledUser() throws Exception {
+
+        var user = new User("test@email.com", "password", null, true);
+        user = userRepository.save(user);
+        var response = sendVerificationCode(new EmailDto(user.getEmail()));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        errorList.getErrors().get(0).equals(ServiceErrorMessages.USER_IS_NOT_DISABLED);
+
+        //check that no email was send
+        var messages = testSmtpServer.getMessages();
+        assertEquals(0, messages.length);
+    }
+
+    @Test
     public void sendVerificationCode_invalid_noEmail() throws Exception {
 
         var response = sendVerificationCode(new EmailDto());
