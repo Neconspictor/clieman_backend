@@ -174,6 +174,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void deleteExistingVerificationToken(User user) {
+
+        var optionalToken = tokenRepository.findByUser(user);
+        if (optionalToken.isPresent()) {
+            tokenRepository.deleteById(optionalToken.get().getId());
+            tokenRepository.flush();
+        }
+    }
+
+    @Override
     public VerificationToken getVerificationToken(String verificationToken) throws ServiceError {
             var optional = tokenRepository.findByToken(verificationToken);
             if (!optional.isPresent()) {

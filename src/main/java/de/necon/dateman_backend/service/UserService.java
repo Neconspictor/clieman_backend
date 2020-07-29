@@ -85,6 +85,12 @@ public interface UserService {
     VerificationToken createVerificationToken(User user, String token) throws ServiceError;
 
     /**
+     * Deletes any existing verification tokens of a user.
+     * @param user The user to delete the verification tokens for.
+     */
+    void deleteExistingVerificationToken(User user);
+
+    /**
      * Provides a verification token.
      * @param verificationToken The token to search.
      * @return The found token.

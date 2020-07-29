@@ -230,6 +230,37 @@ public class UserServiceTest {
     }
 
     @Test
+    public void deleteExistingVerificationToken_valid() {
+
+        var user = new User("test@email.com", "password",
+                "username", false);
+        userRepository.saveAndFlush(user);
+        tokenRepository.saveAndFlush(new VerificationToken("token", user));
+
+        userService.deleteExistingVerificationToken(user);
+
+        assertEquals(0, tokenRepository.findAll().size());
+    }
+
+    @Test
+    public void deleteExistingVerificationToken_valid_noTokens() {
+
+        var user = new User("test@email.com", "password",
+                "username", false);
+        userRepository.saveAndFlush(user);
+        userService.deleteExistingVerificationToken(user);
+    }
+
+    @Test
+    public void deleteExistingVerificationToken_valid_noValidUser() {
+
+        var user = new User("test@email.com", "password",
+                "username", false);
+        user.setId(93L);
+        userService.deleteExistingVerificationToken(user);
+    }
+
+    @Test
     public void getVerificationToken_registeredTokenIsProvided() throws ServiceError {
 
         var user = new User("test@email.com", "password",

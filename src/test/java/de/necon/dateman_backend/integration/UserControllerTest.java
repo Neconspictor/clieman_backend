@@ -3,15 +3,12 @@ package de.necon.dateman_backend.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icegreen.greenmail.store.FolderException;
 import de.necon.dateman_backend.config.ServiceErrorMessages;
-import de.necon.dateman_backend.network.ErrorListDto;
-import de.necon.dateman_backend.network.LoginDto;
+import de.necon.dateman_backend.network.*;
 import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.extensions.TestSmtpServer;
 import de.necon.dateman_backend.model.User;
-import de.necon.dateman_backend.network.RegisterUserDto;
-import de.necon.dateman_backend.network.TokenDto;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -26,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.io.StringWriter;
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -320,6 +318,66 @@ public class UserControllerTest {
         errorList.getErrors().get(0).equals(ServiceErrorMessages.TOKEN_IS_NOT_VALID);
     }
 
+    @Test
+    public void sendVerificationCode_valid() throws Exception {
+
+        var user = userRepository.save(new User("test@email.com", "password", null, false));
+        var response = sendVerificationCode(new EmailDto(user.getEmail()));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        //check that email was send
+        var messages = testSmtpServer.getMessages();
+        assertEquals(1, messages.length);
+        var message = messages[0];
+        var recipients = message.getAllRecipients();
+        assertEquals(1, recipients.length);
+        var recipient = recipients[0];
+        assertEquals(user.getEmail(), recipient.toString());
+
+        var content = (String) message.getContent();
+        var token = tokenRepository.findByUser(user).get();
+        assertTrue(content.contains(token.getToken()));
+    }
+
+    @Test
+    public void sendVerificationCode_invalid_noUserFound() throws Exception {
+
+        var user = new User("test@email.com", "password", null, false);
+        user.setId(1922L);
+        var response = sendVerificationCode(new EmailDto(user.getEmail()));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        errorList.getErrors().get(0).equals(ServiceErrorMessages.USER_NOT_FOUND);
+
+        //check that no email was send
+        var messages = testSmtpServer.getMessages();
+        assertEquals(0, messages.length);
+    }
+
+    @Test
+    public void sendVerificationCode_invalid_nothingSend() throws Exception {
+
+        var response = sendVerificationCode(null);
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        assertEquals("", response.getContentAsString());
+    }
+
+    @Test
+    public void sendVerificationCode_invalid_noEmail() throws Exception {
+
+        var response = sendVerificationCode(new EmailDto());
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        errorList.getErrors().get(0).equals(ServiceErrorMessages.USER_NOT_FOUND);
+
+        //check that no email was send
+        var messages = testSmtpServer.getMessages();
+        assertEquals(0, messages.length);
+    }
+
 
     private MockHttpServletResponse confirmUser(TokenDto tokenDto) throws Exception {
         var writer = new StringWriter();
@@ -341,6 +399,14 @@ public class UserControllerTest {
         var writer = new StringWriter();
         objectMapper.writeValue(writer, registerUserDto);
         return mvc.perform(post("/public/register").secure(true).contentType("application/json")
+                .content(writer.toString())).andReturn().getResponse();
+    }
+
+    private MockHttpServletResponse sendVerificationCode(EmailDto emailDto) throws Exception {
+        var writer = new StringWriter();
+        if (emailDto != null)
+            objectMapper.writeValue(writer, emailDto);
+        return mvc.perform(post("/public/sendVerificationCode").secure(true).contentType("application/json")
                 .content(writer.toString())).andReturn().getResponse();
     }
 }

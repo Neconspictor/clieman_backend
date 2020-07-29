@@ -1,7 +1,6 @@
 package de.necon.dateman_backend.logic;
 
 import de.necon.dateman_backend.events.OnSendVerificationCodeEvent;
-import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.service.EmailService;
 import de.necon.dateman_backend.service.UserService;
@@ -10,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@Transactional
 public class SendVerificationCodeListener implements
         ApplicationListener<OnSendVerificationCodeEvent> {
 
@@ -32,6 +33,9 @@ public class SendVerificationCodeListener implements
         User user = event.getUser();
 
         String token = codeService.generateVerificationCode();
+
+
+        userService.deleteExistingVerificationToken(user);
         var verificationToken = userService.createVerificationToken(user, token);
 
         verificationToken.getToken();
