@@ -1,9 +1,9 @@
-package de.necon.dateman_backend.service;
+package de.necon.dateman_backend.events;
 
 import de.necon.dateman_backend.model.User;
 import org.springframework.context.ApplicationEvent;
 
-public class OnRegistrationCompleteEvent extends ApplicationEvent {
+public class OnSendVerificationCodeEvent extends ApplicationEvent {
 
     private User user;
 
@@ -13,7 +13,7 @@ public class OnRegistrationCompleteEvent extends ApplicationEvent {
      * @param user the user on which the event initially occurred or with
      *               which the event is associated (never {@code null})
      */
-    public OnRegistrationCompleteEvent(User user) {
+    public OnSendVerificationCodeEvent(User user) {
         super(user);
         this.user = user;
     }

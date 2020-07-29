@@ -1,8 +1,6 @@
 package de.necon.dateman_backend.unit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.exception.ServiceError;
-import de.necon.dateman_backend.util.Json;
 import de.necon.dateman_backend.util.ModelFactory;
 import de.necon.dateman_backend.model.*;
 import de.necon.dateman_backend.repository.ClientRepository;
@@ -88,6 +86,7 @@ public class EventServiceTest {
     public void getEventsOfUser_notExistingUserThrows() {
 
         var user = modelFactory.createUser("test@email.com", true, false);
+        user.setId(3737L);
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.getEventsOfUser(user);
         }).source();
@@ -189,6 +188,7 @@ public class EventServiceTest {
     @Test
     public void addEvent_NotStoredUserNotAllowed() {
         var user = modelFactory.createUser("test@email.com", true, false);
+        user.setId(345345345L);
         Event event = modelFactory.createEvent("id", user, new ArrayList<>());
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
@@ -196,6 +196,20 @@ public class EventServiceTest {
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void addEvent_NoUserNotAllowed() {
+        //Note user has no id!
+        var user = modelFactory.createUser("test@email.com", true, false);
+
+        Event event = modelFactory.createEvent("id", user, new ArrayList<>());
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            eventService.addEvent(event);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), NO_USER);
     }
 
 
@@ -287,7 +301,7 @@ public class EventServiceTest {
             eventService.updateEvent(event);
         }).source();
 
-        Asserter.assertContainsError(serviceError.getErrors(), INVALID_ID);
+        Asserter.assertContainsError(serviceError.getErrors(), EVENT_NOT_FOUND);
     }
 
     @Test
@@ -345,20 +359,21 @@ public class EventServiceTest {
             eventService.removeEvent(event);
         }).source();
 
-        Asserter.assertContainsError(serviceError.getErrors(), NO_EVENT);
+        Asserter.assertContainsError(serviceError.getErrors(), EVENT_NOT_FOUND);
     }
 
     @Test
     public void removeEvent_invalidid_user() {
 
         var user = modelFactory.createUser("test@email.com", true, false);
+        user.setId(38383L);
         Event event = modelFactory.createEvent("eventID", user, new ArrayList<>(), false);
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             eventService.removeEvent(event);
         }).source();
 
-        Asserter.assertContainsError(serviceError.getErrors(), NO_EVENT);
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
     }
 
     @Test

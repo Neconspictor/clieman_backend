@@ -11,6 +11,7 @@ import javax.validation.ValidatorFactory;
 
 import static de.necon.dateman_backend.util.ModelFactory.createToken;
 import static de.necon.dateman_backend.util.ModelFactory.createValidUser;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest

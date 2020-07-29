@@ -19,6 +19,7 @@ public class ServiceErrorMessages {
     public static final String TOKEN_IS_EXPIRED = "TokenIsExpired";
     public static final String TOKEN_IS_NOT_VALID = "TokenIsNotValid";
     public static final String NO_TOKEN = "NoToken";
+    public static final String ANOTHER_TOKEN_ALREADY_EXISTS = "AnotherTokenAlreadyExists";
     public static final String NO_USER = "NoUser";
     public static final String NO_EXPIRY_DATE = "NoExpiryDate";
     public static final String USER_IS_LINKED_TO_ENTITIES = "UserIsLinkedToEntities";

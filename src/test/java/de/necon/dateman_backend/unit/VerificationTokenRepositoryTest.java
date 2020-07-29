@@ -10,6 +10,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static de.necon.dateman_backend.util.ModelFactory.createToken;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
@@ -47,5 +48,19 @@ public class VerificationTokenRepositoryTest {
         var optionalToken = repository.findByUser(user);
         assertTrue(optionalToken.isPresent());
         assertThat(optionalToken.get().getToken().equals(token.getToken()));
+    }
+
+    @Test
+    public void testUserUnique() {
+        var token = createToken();
+        var token2 = createToken();
+        token2.setToken("token2");
+        token2.setUser(token.getUser());
+
+        testEntityManager.persistAndFlush(token.getUser());
+        testEntityManager.persistAndFlush(token);
+        assertThatExceptionOfType(javax.persistence.PersistenceException.class).isThrownBy(()->{
+            testEntityManager.persistAndFlush(token2);
+        }).withCauseInstanceOf(org.hibernate.exception.ConstraintViolationException.class);
     }
 }

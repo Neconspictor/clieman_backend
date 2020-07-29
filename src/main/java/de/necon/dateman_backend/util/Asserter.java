@@ -18,7 +18,7 @@ public class Asserter {
 
     public static void assertContainsError(List<String> errorList, String error) {
         for(var e : errorList) {
-            if (error.equals(error)) return;
+            if (error.equals(e)) return;
         }
 
         throw new AssertionError("Expected error list to contain this error: " + error);

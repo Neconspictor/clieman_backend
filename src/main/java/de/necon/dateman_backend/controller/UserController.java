@@ -1,10 +1,11 @@
 package de.necon.dateman_backend.controller;
 
+import de.necon.dateman_backend.events.OnSendVerificationCodeEvent;
 import de.necon.dateman_backend.exception.ServiceError;
+import de.necon.dateman_backend.network.EmailDto;
 import de.necon.dateman_backend.network.RegisterResponseDto;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.network.TokenDto;
-import de.necon.dateman_backend.service.OnRegistrationCompleteEvent;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.service.UserService;
 import de.necon.dateman_backend.util.ResponseWriter;
@@ -43,7 +44,7 @@ public class UserController {
         User savedUser = null;
         try {
             savedUser = userService.registerNewUserAccount(userDto);
-            eventPublisher.publishEvent(new OnRegistrationCompleteEvent(savedUser));
+            eventPublisher.publishEvent(new OnSendVerificationCodeEvent(savedUser));
 
         } catch(ServiceError e) {
             responseWriter.writeJSONErrors(e.getErrors(), response);
@@ -66,6 +67,16 @@ public class UserController {
 
         try {
             userService.verifyUserAccount(tokenDto.getToken());
+        } catch(ServiceError e) {
+            responseWriter.writeJSONErrors(e.getErrors(), response);
+        }
+    }
+
+    @PostMapping("/public/sendVerificationCode")
+    public void sendVerificationCode(@RequestBody EmailDto emailDto, final HttpServletResponse response) throws IOException {
+        try {
+            var user = userService.getDisabledUserByEmail(emailDto);
+            eventPublisher.publishEvent(new OnSendVerificationCodeEvent(user));
         } catch(ServiceError e) {
             responseWriter.writeJSONErrors(e.getErrors(), response);
         }

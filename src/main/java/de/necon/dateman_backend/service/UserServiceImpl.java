@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
+import de.necon.dateman_backend.network.EmailDto;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -125,6 +127,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getDisabledUserByEmail(EmailDto emailDto) throws ServiceError {
+        if (emailDto == null) throw new ServiceError(NO_EMAIL);
+        var email = emailDto.getEmail();
+        if (email == null) throw new ServiceError(NO_EMAIL);
+
+        var optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) throw new ServiceError(USER_NOT_FOUND);
+        var user = optionalUser.get();
+
+        if (user.isEnabled()) throw new ServiceError(USER_IS_NOT_DISABLED);
+
+        return user;
+    }
+
+    @Override
     public void updateEnabledUser(String principal, User user) throws ServiceError {
 
         var oldUser = getUserByPrincipal(principal);
@@ -151,6 +168,8 @@ public class UserServiceImpl implements UserService {
             return tokenRepository.saveAndFlush(verificationToken);
         } catch(ConstraintViolationException e) {
             throw new ServiceError(MessageExtractor.extract(e));
+        } catch (DataIntegrityViolationException e) {
+            throw new ServiceError(ANOTHER_TOKEN_ALREADY_EXISTS);
         }
     }
 

@@ -1,5 +1,7 @@
 package de.necon.dateman_backend.util;
 
+import org.springframework.dao.DataIntegrityViolationException;
+
 import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,5 +15,9 @@ public class MessageExtractor {
         return e.getConstraintViolations().stream().
                 map(v -> v.getMessageTemplate()).
                 collect(Collectors.toUnmodifiableList());
+    }
+
+    public static List<String> extract(DataIntegrityViolationException e) {
+        return List.of(e.getMessage());
     }
 }

@@ -76,7 +76,6 @@ public class UserServiceTest {
         var errors = serviceError.getErrors();
 
         Asserter.assertContainsError(errors, EMAIL_ALREADY_EXISTS);
-        Asserter.assertContainsError(errors, USERNAME_ALREADY_EXISTS);
 
         assertTrue(userRepository.findAll().size() == 1);
     }
@@ -212,6 +211,22 @@ public class UserServiceTest {
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), NO_TOKEN);
+    }
+
+    @Test
+    public void createVerificationToken_CreatingMultipleTokensIsNotAllowed() {
+
+        var user = new User("test@email.com", "password",
+                "username", false);
+        userRepository.saveAndFlush(user);
+        userService.createVerificationToken(user, "token1");
+
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.createVerificationToken(user, "token2");
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), ANOTHER_TOKEN_ALREADY_EXISTS);
     }
 
     @Test

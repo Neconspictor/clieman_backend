@@ -103,7 +103,7 @@ public class EventServiceImpl implements EventService {
 
     private void baseCheck(User user) {
         if (user == null || user.getId() == null) {
-            throw new ServiceError(NO_EVENT);
+            throw new ServiceError(NO_USER);
         }
 
         if (userRepository.findByEmail(user.getEmail()).isEmpty()) {

@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
+import de.necon.dateman_backend.network.EmailDto;
 import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
@@ -55,6 +56,14 @@ public interface UserService {
     User getUserByPrincipal(String principal) throws ServiceError;
 
     /**
+     * Provides a disabled user identified by its email.
+     * @param emailDto Holds the email of the user.
+     * @return The found user.
+     * @throws ServiceError If no disabled user could be found.
+     */
+    User getDisabledUserByEmail(EmailDto emailDto) throws ServiceError;
+
+    /**
      * Updates an enabled user in the database.
      * @param principal The principal (email or username) of the user.
      * @param newUser The new content of the user.
@@ -70,8 +79,8 @@ public interface UserService {
      * @param token The token which should be linked to the user.
      * @return The created (and in database stored) verification token.
      *
-     * @throws ServiceError: If the user is not stored in the database, the user is not disabled or token
-     * is not a valid token.
+     * @throws ServiceError: If the user is not stored in the database, the user is not disabled, token
+     * is not a valid token or a valid token already exists in the database.
      */
     VerificationToken createVerificationToken(User user, String token) throws ServiceError;
 
@@ -82,4 +91,10 @@ public interface UserService {
      * @throws ServiceError If the verification token couldn't be found.
      */
     VerificationToken getVerificationToken(String verificationToken) throws ServiceError;
+
+    /**
+     * Sends a verification to the email address of a disabled user.
+     * @param emailDto The email address data of the disabled user.
+     * @throws ServiceError If the given email does not match an existing disabled user.
+     */
 }
