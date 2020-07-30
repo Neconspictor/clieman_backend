@@ -126,7 +126,7 @@ public interface UserService {
 
     /**
      * Validates a given user.
-     * A user is valid if he is not null, has a not null id and is stored in the database.
+     * A user is valid if he is not null, has a not null id, is enabled and is stored in the database.
      * @param user The user to validate.
      * @return The user stored in the database.
      * @throws ServiceError If the user was not found.

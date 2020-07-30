@@ -242,6 +242,7 @@ public class UserServiceImpl implements UserService {
         if (userUsername != null && userUsername.equals(username)) return user;
 
         validateUsername(username);
+        user.setUsername(username);
         return userRepository.saveAndFlush(user);
     }
 
@@ -250,7 +251,9 @@ public class UserServiceImpl implements UserService {
         if (user == null || user.getId() == null) throw new ServiceError(USER_NOT_FOUND);
         var optionalUser = userRepository.findById(user.getId());
         if (optionalUser.isEmpty()) throw new ServiceError(USER_NOT_FOUND);
-        return optionalUser.get();
+        user = optionalUser.get();
+        if (user.isDisabled()) throw new ServiceError(USER_IS_DISABLED);
+        return user;
     }
 
     @Override

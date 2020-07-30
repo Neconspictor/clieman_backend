@@ -10,6 +10,7 @@ import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.extensions.TestSmtpServer;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.service.JWTTokenService;
+import de.necon.dateman_backend.util.Asserter;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.io.StringWriter;
 import java.util.Date;
 
+import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -112,7 +114,7 @@ public class UserControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
         var errors = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class).getErrors();
         assertTrue(errors.get(0).equals(ServiceErrorMessages.INVALID_LOGIN));
-        assertTrue(errors.get(1).equals(ServiceErrorMessages.USER_IS_DISABLED));
+        assertTrue(errors.get(1).equals(USER_IS_DISABLED));
     }
 
     @Test
@@ -374,7 +376,7 @@ public class UserControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
-        errorList.getErrors().get(0).equals(ServiceErrorMessages.MALFORMED_DATA);
+        errorList.getErrors().get(0).equals(MALFORMED_DATA);
     }
 
     @Test
@@ -440,7 +442,7 @@ public class UserControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
-        errorList.getErrors().get(0).equals(ServiceErrorMessages.OLD_PASSWORD_NOT_MATCHING);
+        Asserter.assertContainsError(errorList.getErrors(), OLD_PASSWORD_NOT_MATCHING);
     }
 
     @Test
@@ -453,7 +455,7 @@ public class UserControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
-        errorList.getErrors().get(0).equals(ServiceErrorMessages.MALFORMED_DATA);
+        Asserter.assertContainsError(errorList.getErrors(), MALFORMED_DATA);
     }
 
     @Test
@@ -466,7 +468,7 @@ public class UserControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
-        errorList.getErrors().get(0).equals(ServiceErrorMessages.MALFORMED_DATA);
+        Asserter.assertContainsError(errorList.getErrors(), MALFORMED_DATA);
     }
 
     @Test
@@ -483,6 +485,89 @@ public class UserControllerTest {
         var userDto = objectMapper.readValue(response.getContentAsString(), UserDto.class);
         assertEquals(newEmail, userDto.email);
         assertEquals(user.getUsername(), userDto.username);
+    }
+
+    @Test
+    public void changeUsername_invalid_dtoNull() throws Exception {
+        var user = new User("test@email.com", "password", null, true);
+        user = userRepository.save(user);
+
+        var response = changeUsername(null, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        Asserter.assertContainsError(errorList.getErrors(), MALFORMED_DATA);
+    }
+
+    @Test
+    public void changeUsername_invalid_spaces() throws Exception {
+        var user = new User("test@email.com", "password", null, true);
+        user = userRepository.save(user);
+
+        var response = changeUsername(new UsernameDto(" "), tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        Asserter.assertContainsError(errorList.getErrors(), USERNAME_INVALID);
+    }
+
+    @Test
+    public void changeUsername_invalid_alreadyExists() throws Exception {
+        var user = new User("test@email.com", "password", null, true);
+        user = userRepository.save(user);
+
+        var user2 = new User("test2@email.com", "password", "test2", true);
+        user2 = userRepository.save(user2);
+
+        var response = changeUsername(new UsernameDto(user2.getUsername()), tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        Asserter.assertContainsError(errorList.getErrors(), USERNAME_ALREADY_EXISTS);
+    }
+
+    @Test
+    public void changeUsername_invalid_userNotEnabled() throws Exception {
+        var user = new User("test@email.com", "password", null, false);
+        user = userRepository.save(user);
+
+        var response = changeUsername(new UsernameDto("test"), tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        Asserter.assertContainsError(errorList.getErrors(), USER_IS_DISABLED);
+    }
+
+
+    @Test
+    public void changeUsername_valid() throws Exception {
+        var user = new User("test@email.com", "password", null, true);
+        user = userRepository.save(user);
+
+        var response = changeUsername(new UsernameDto("test"), tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        var userDto = objectMapper.readValue(response.getContentAsString(), UserDto.class);
+        assertEquals(user.getEmail(), userDto.email);
+        assertEquals("test", userDto.username);
+    }
+
+    @Test
+    public void changeUsername_valid_nullAllowed() throws Exception {
+        var user = new User("test@email.com", "password", null, true);
+        user = userRepository.save(user);
+
+        var response = changeUsername(new UsernameDto(null), tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+    }
+
+    @Test
+    public void changeUsername_valid_nullAllowedForMultipleUsers() throws Exception {
+        var user = userRepository.save(new User("test@email.com", "password", "test", true));
+        var user2 = userRepository.save(new User("test2@email.com", "password", null, true));
+
+        var response = changeUsername(new UsernameDto(null), tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
     }
 
 
@@ -533,6 +618,17 @@ public class UserControllerTest {
         var writer = new StringWriter();
         objectMapper.writeValue(writer, dto);
         return mvc.perform(post("/user/changePassword")
+                .header(header.getValue0(), header.getValue1())
+                .secure(true)
+                .contentType("application/json")
+                .content(writer.toString())).andReturn().getResponse();
+    }
+
+    private MockHttpServletResponse changeUsername(UsernameDto dto, String token) throws Exception {
+        var header = JWTTokenService.createTokenHeader(token);
+        var writer = new StringWriter();
+        objectMapper.writeValue(writer, dto);
+        return mvc.perform(post("/user/changeUsername")
                 .header(header.getValue0(), header.getValue1())
                 .secure(true)
                 .contentType("application/json")

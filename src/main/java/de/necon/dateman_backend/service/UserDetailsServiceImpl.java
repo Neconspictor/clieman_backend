@@ -1,11 +1,13 @@
 package de.necon.dateman_backend.service;
 
+import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import static de.necon.dateman_backend.config.ServiceErrorMessages.USER_IS_DISABLED;
 import static java.util.Collections.emptyList;
 
 @Service

@@ -76,4 +76,12 @@ public class UserController {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
         userService.changePassword(user, dto.getOldPassword(), dto.getNewPassword(), dto.getConfirmationPassword());
     }
+
+    @PostMapping("/user/changeUsername")
+    public UserDto changeUsername(@Valid @RequestBody UsernameDto dto, final HttpServletResponse response) throws IOException {
+
+        var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        user =  userService.changeUsername(user, dto.getUsername());
+        return new UserDto(user.getEmail(), user.getUsername());
+    }
 }

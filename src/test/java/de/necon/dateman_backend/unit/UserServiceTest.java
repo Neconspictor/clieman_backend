@@ -698,6 +698,10 @@ public class UserServiceTest {
                 "password", "test", true));
 
         userService.changeUsername(user, "test2");
+
+        //check that the username is changed indead
+        user = userRepository.findById(user.getId()).get();
+        assertEquals("test2", user.getUsername());
     }
 
     @Test
@@ -719,6 +723,19 @@ public class UserServiceTest {
     }
 
     @Test
+    public void validateUser_invalid_userDisabled() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", "test", false));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.validateUser(user);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_IS_DISABLED);
+    }
+
+    @Test
     public void validateUser_invalid_userNotStored() {
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             var user = new User("test@email.com", "password", "test", true);
@@ -737,7 +754,6 @@ public class UserServiceTest {
 
         userService.validateUser(user);
     }
-
     @Test
     public void validateUsername_invalid_empty() {
 
