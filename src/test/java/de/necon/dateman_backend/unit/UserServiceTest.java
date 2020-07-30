@@ -5,7 +5,6 @@ import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
-import de.necon.dateman_backend.network.EmailDto;
 import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
@@ -667,5 +665,50 @@ public class UserServiceTest {
                 new User("test@email.com", "password", "test", true));
 
         userService.validateUser(user);
+    }
+
+    @Test
+    public void validateUsername_invalid_empty() {
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.validateUsername("");
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USERNAME_INVALID);
+    }
+
+    @Test
+    public void validateUsername_invalid_spaces() {
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.validateUsername("d d");
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USERNAME_INVALID);
+    }
+
+    @Test
+    public void validateUsername_invalid_alreadyExists() {
+
+        var user = userRepository.saveAndFlush(
+                new User("test@email.com", "password", "test", true));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.validateUsername(user.getUsername());
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USERNAME_ALREADY_EXISTS);
+    }
+
+    @Test
+    public void validateUsername_valid_null() {
+        userService.validateUsername(null);
+    }
+
+    @Test
+    public void validateUsername_valid_twoWithNull() {
+        var user = userRepository.saveAndFlush(
+                new User("test@email.com", "password", null, true));
+        userService.validateUsername(null);
     }
 }

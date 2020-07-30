@@ -37,4 +37,6 @@ public class ServiceErrorMessages {
     public static final String OLD_PASSWORD_NOT_MATCHING = "OldPasswordNotMatching";
     public static final String NEW_PASSWORD_CONFIRMATION_NOT_MATCHING = "NewPasswordConfirmationNotMatching";
     public static final String MALFORMED_DATA = "MalformedData";
+
+    public static final String USERNAME_INVALID = "UsernameInvalid";
 }

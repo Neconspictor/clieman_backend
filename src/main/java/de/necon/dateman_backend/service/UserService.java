@@ -117,6 +117,14 @@ public interface UserService {
                         String confirmationPassword) throws ServiceError;
 
     /**
+     * Changes the email of a user.
+     * @param username The new username. Can be null.
+     * @return The updated user.
+     * @throws ServiceError If the new username is already occupied by another user (except if the username is null/empty);
+     */
+    User changeUsername(User user, String username) throws ServiceError;
+
+    /**
      * Validates a given user.
      * A user is valid if he is not null, has a not null id and is stored in the database.
      * @param user The user to validate.
@@ -124,4 +132,12 @@ public interface UserService {
      * @throws ServiceError If the user was not found.
      */
     User validateUser(User user) throws ServiceError;
+
+    /**
+     * Validates that a username is valid.
+     * A username is valid if it is null (no username), not empty, does not contain any spaces and no other stored user
+     * exists having the same username.
+     * @throws ServiceError If the username is not valid.
+     */
+    void validateUsername(String username) throws ServiceError;
 }

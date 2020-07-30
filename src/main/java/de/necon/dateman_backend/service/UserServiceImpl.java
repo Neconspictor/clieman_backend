@@ -1,9 +1,6 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
-import de.necon.dateman_backend.network.EmailDto;
-import de.necon.dateman_backend.network.PasswordChangeDto;
-import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
 import de.necon.dateman_backend.repository.UserRepository;
@@ -63,6 +60,8 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new ServiceError(EMAIL_ALREADY_EXISTS);
         }
+
+        validateUsername(username);
 
         if (username != null &&
                 userRepository.findByUsername(username).isPresent()) {
@@ -233,10 +232,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User changeUsername(User user, String username) throws ServiceError {
+
+        validateUsername(username);
+        return userRepository.saveAndFlush(user);
+    }
+
+    @Override
     public User validateUser(User user) throws ServiceError {
         if (user == null || user.getId() == null) throw new ServiceError(USER_NOT_FOUND);
         var optionalUser = userRepository.findById(user.getId());
         if (optionalUser.isEmpty()) throw new ServiceError(USER_NOT_FOUND);
         return optionalUser.get();
+    }
+
+    @Override
+    public void validateUsername(String username) {
+
+        if (username == null) return;
+
+        //we do not allow an empty username and do not allow spaces
+        if (username.isEmpty() || username.contains(" ")) throw new ServiceError(USERNAME_INVALID);
+
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new ServiceError(USERNAME_ALREADY_EXISTS);
+        }
     }
 }
