@@ -2,7 +2,7 @@ package de.necon.dateman_backend.network;
 
 import javax.validation.constraints.NotBlank;
 
-public class TokenDto implements Dto {
+public class TokenDto {
 
     @NotBlank
     private String token;

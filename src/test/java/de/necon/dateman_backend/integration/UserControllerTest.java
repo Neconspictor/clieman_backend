@@ -456,6 +456,35 @@ public class UserControllerTest {
         errorList.getErrors().get(0).equals(ServiceErrorMessages.MALFORMED_DATA);
     }
 
+    @Test
+    public void changeEmail_invalid_EmailNull() throws Exception {
+
+        var user = new User("test@email.com", "password", null, true);
+        user = userRepository.save(user);
+
+        var response = changeEmail(new EmailDto(null), tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        errorList.getErrors().get(0).equals(ServiceErrorMessages.MALFORMED_DATA);
+    }
+
+    @Test
+    public void changeEmail_valid() throws Exception {
+
+        var user = new User("test@email.com", "password", null, true);
+        user = userRepository.save(user);
+
+        String newEmail = "new@email.com";
+
+        var response = changeEmail(new EmailDto(newEmail), tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        var userDto = objectMapper.readValue(response.getContentAsString(), UserDto.class);
+        assertEquals(newEmail, userDto.email);
+        assertEquals(user.getUsername(), userDto.username);
+    }
+
 
     private MockHttpServletResponse confirmUser(TokenDto tokenDto) throws Exception {
         var writer = new StringWriter();

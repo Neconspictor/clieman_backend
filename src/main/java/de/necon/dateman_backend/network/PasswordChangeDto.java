@@ -2,7 +2,7 @@ package de.necon.dateman_backend.network;
 
 import javax.validation.constraints.NotBlank;
 
-public class PasswordChangeDto implements Dto {
+public class PasswordChangeDto {
 
     @NotBlank
     private String oldPassword;

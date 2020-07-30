@@ -2,12 +2,16 @@ package de.necon.dateman_backend.network;
 
 import javax.validation.constraints.NotBlank;
 
-public class UserDto implements Dto {
+public class UserDto {
 
     @NotBlank
-    public final String email;
+    public String email;
 
-    public final String username;
+    public String username;
+
+    public UserDto() {
+
+    }
 
     public UserDto(String email, String username) {
         this.email = email;

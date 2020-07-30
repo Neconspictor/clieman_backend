@@ -5,7 +5,7 @@ import javax.validation.constraints.NotBlank;
 /**
  * Data Transfer object for registering a user
  */
-public class RegisterUserDto implements Dto {
+public class RegisterUserDto {
 
     @NotBlank
     private String email;
