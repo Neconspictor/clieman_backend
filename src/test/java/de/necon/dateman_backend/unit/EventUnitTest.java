@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 
+import static de.necon.dateman_backend.config.ServiceErrorMessages.INVALID_ID;
 import static de.necon.dateman_backend.config.ServiceErrorMessages.NO_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -75,13 +76,13 @@ public class EventUnitTest {
     @Test
     public void id_invalid() {
 
-        Event event = modelFactory.createEvent("event id", null, new ArrayList<>());
+        Event event = modelFactory.createEvent(null, null, new ArrayList<>());
 
         var violations = validator.validate(event);
         assertTrue(violations.size() == 1);
 
         var constraint = violations.iterator().next();
-        assertTrue(constraint.getMessageTemplate().equals(NO_USER));
+        assertTrue(constraint.getMessageTemplate().equals(INVALID_ID));
     }
 
     @Test

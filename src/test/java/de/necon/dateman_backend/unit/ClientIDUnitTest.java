@@ -90,7 +90,7 @@ public class ClientIDUnitTest {
     }
 
     @Test
-    public void user_NullNotAllowed() {
+    public void user_NullAllowed() {
 
         ID id = new ID();
 
@@ -98,9 +98,7 @@ public class ClientIDUnitTest {
         id.setId("id");
 
         var violations = validator.validate(id);
-        assertTrue(violations.size() == 1);
-        var constraint = violations.iterator().next();
-        assertTrue(constraint.getMessageTemplate().equals(NO_USER));
+        assertTrue(violations.size() == 0);
     }
 
     @Test

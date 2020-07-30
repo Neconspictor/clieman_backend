@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -26,7 +28,7 @@ public class ClientController {
     }
 
     @PostMapping("/clients/add")
-    Client addClient(@RequestBody Client client) {
+    Client addClient(@Valid @RequestBody Client client) {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
         client.getId().setUser(user);
         client =  clientService.addClient(client);
@@ -34,14 +36,14 @@ public class ClientController {
     }
 
     @PostMapping("/clients/remove")
-    void removeClient(@RequestBody Client client) {
+    void removeClient(@Valid @RequestBody Client client) {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
         client.getId().setUser(user);
         clientService.removeClient(client);
     }
 
     @PostMapping("/clients/update")
-    void updateClient(@RequestBody Client client) {
+    void updateClient(@Valid @RequestBody Client client) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
         client.getId().setUser(user);
         clientService.updateClient(client, client.getId());

@@ -26,7 +26,7 @@ public class ID implements Serializable {
     @Column(name="ID_EMBEDDED")
     private String id;
 
-    @NotNull(message=NO_USER)
+    //@NotNull(message=NO_USER)
     @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "USER_ID_EMBEDDED")
     @JsonIgnore

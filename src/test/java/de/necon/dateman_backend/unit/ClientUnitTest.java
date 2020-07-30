@@ -72,14 +72,12 @@ public class ClientUnitTest {
     }
 
     @Test
-    public void validationForUserWorks() {
+    public void valid_userCanBeNull() {
 
         Client client = modelFactory.createClient("client id", null, false);
 
         var violations = validator.validate(client);
-        assertTrue(violations.size() == 1);
-        var constraint = violations.iterator().next();
-        assertTrue(constraint.getMessageTemplate().equals(NO_USER));
+        assertTrue(violations.size() == 0);
     }
 
 

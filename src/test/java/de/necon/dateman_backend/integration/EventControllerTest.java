@@ -234,7 +234,7 @@ public class EventControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
-        assertEquals(EVENT_NOT_FOUND, errorList.getErrors().get(0));
+        assertEquals(MALFORMED_DATA, errorList.getErrors().get(0));
     }
 
     @Test
@@ -247,7 +247,7 @@ public class EventControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
-        assertEquals(EVENT_NOT_FOUND, errorList.getErrors().get(0));
+        assertEquals(MALFORMED_DATA, errorList.getErrors().get(0));
     }
 
 

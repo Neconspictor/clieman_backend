@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -32,21 +33,21 @@ public class EventController {
     }
 
     @PostMapping("/events/add")
-    Event addEvent(@RequestBody Event event) {
+    Event addEvent(@Valid @RequestBody Event event) {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
         event.setUser(user);
         return eventService.addEvent(event);
     }
 
     @PostMapping("/events/remove")
-    void removeEvent(@RequestBody Event event) {
+    void removeEvent(@Valid @RequestBody Event event) {
         var user = (User)SecurityContextHolder.getContext().getAuthentication().getDetails();
         event.setUser(user);
         eventService.removeEvent(event);
     }
 
     @PostMapping("/events/update")
-    void updateEvent(@RequestBody Event event) {
+    void updateEvent(@Valid @RequestBody Event event) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
         event.setUser(user);
         eventService.updateEvent(event);

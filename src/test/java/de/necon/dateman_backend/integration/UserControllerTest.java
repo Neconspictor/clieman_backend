@@ -373,7 +373,8 @@ public class UserControllerTest {
         var response = sendVerificationCode(null);
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
-        assertEquals("", response.getContentAsString());
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        errorList.getErrors().get(0).equals(ServiceErrorMessages.MALFORMED_DATA);
     }
 
     @Test
@@ -442,6 +443,19 @@ public class UserControllerTest {
         errorList.getErrors().get(0).equals(ServiceErrorMessages.OLD_PASSWORD_NOT_MATCHING);
     }
 
+    @Test
+    public void changeEmail_invalid_dtoNull() throws Exception {
+
+        var user = new User("test@email.com", "password", null, true);
+        user = userRepository.save(user);
+
+        var response = changeEmail(null, tokenService.createToken(user));
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errorList = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        errorList.getErrors().get(0).equals(ServiceErrorMessages.MALFORMED_DATA);
+    }
+
 
     private MockHttpServletResponse confirmUser(TokenDto tokenDto) throws Exception {
         var writer = new StringWriter();
@@ -471,6 +485,17 @@ public class UserControllerTest {
         if (emailDto != null)
             objectMapper.writeValue(writer, emailDto);
         return mvc.perform(post("/public/sendVerificationCode").secure(true).contentType("application/json")
+                .content(writer.toString())).andReturn().getResponse();
+    }
+
+    private MockHttpServletResponse changeEmail(EmailDto dto, String token) throws Exception {
+        var header = JWTTokenService.createTokenHeader(token);
+        var writer = new StringWriter();
+        objectMapper.writeValue(writer, dto);
+        return mvc.perform(post("/user/changeEmail")
+                .header(header.getValue0(), header.getValue1())
+                .secure(true)
+                .contentType("application/json")
                 .content(writer.toString())).andReturn().getResponse();
     }
 

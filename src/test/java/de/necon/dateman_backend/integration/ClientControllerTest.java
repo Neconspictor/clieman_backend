@@ -28,8 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.StringWriter;
 import java.util.List;
 
-import static de.necon.dateman_backend.config.ServiceErrorMessages.CLIENT_ALREADY_EXISTS;
-import static de.necon.dateman_backend.config.ServiceErrorMessages.CLIENT_NOT_FOUND;
+import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -224,7 +223,7 @@ public class ClientControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
-        assertEquals(CLIENT_NOT_FOUND, errorList.getErrors().get(0));
+        assertEquals(MALFORMED_DATA, errorList.getErrors().get(0));
     }
 
     @Test
@@ -238,7 +237,7 @@ public class ClientControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
-        assertEquals(CLIENT_NOT_FOUND, errorList.getErrors().get(0));
+        assertEquals(MALFORMED_DATA, errorList.getErrors().get(0));
     }
 
     @Test
@@ -252,7 +251,7 @@ public class ClientControllerTest {
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errorList = mapper.readValue(response.getContentAsString(), ErrorListDto.class);
-        assertEquals(CLIENT_NOT_FOUND, errorList.getErrors().get(0));
+        assertEquals(MALFORMED_DATA, errorList.getErrors().get(0));
     }
 
 
