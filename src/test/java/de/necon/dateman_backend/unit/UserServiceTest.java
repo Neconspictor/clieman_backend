@@ -626,7 +626,78 @@ public class UserServiceTest {
 
         var changedUser = userService.changeEmail(user, newEmail);
         assertEquals(newEmail, changedUser.getEmail());
+    }
 
+    @Test
+    public void changeUsername_invalid_empty() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", null, true));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changeUsername(user, "");
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USERNAME_INVALID);
+    }
+
+    @Test
+    public void changeUsername_invalid_spaces() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", null, true));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changeUsername(user, "  ");
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USERNAME_INVALID);
+    }
+
+    @Test
+    public void changeUsername_invalid_alreadyExists() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", "test", true));
+
+        var user2 = userRepository.saveAndFlush(new User("test2@email.com",
+                "password", "test2", true));
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changeUsername(user, user2.getUsername());
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USERNAME_ALREADY_EXISTS);
+    }
+
+    @Test
+    public void changeUsername_valid_null() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", "test", true));
+
+        var user2 = userRepository.saveAndFlush(new User("test2@email.com",
+                "password", null, true));
+
+        userService.changeUsername(user, null);
+    }
+
+    @Test
+    public void changeUsername_valid_identity() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", "test", true));
+
+        userService.changeUsername(user, "test");
+    }
+
+    @Test
+    public void changeUsername_valid() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", "test", true));
+
+        userService.changeUsername(user, "test2");
     }
 
     @Test

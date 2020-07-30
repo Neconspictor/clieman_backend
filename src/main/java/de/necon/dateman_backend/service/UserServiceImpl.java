@@ -234,6 +234,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public User changeUsername(User user, String username) throws ServiceError {
 
+        validateUser(user);
+        user = userRepository.findByEmail(user.getEmail()).get();
+
+        var userUsername = user.getUsername();
+
+        if (userUsername != null && userUsername.equals(username)) return user;
+
         validateUsername(username);
         return userRepository.saveAndFlush(user);
     }
