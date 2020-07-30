@@ -619,6 +619,19 @@ public class UserServiceTest {
     }
 
     @Test
+    public void changeEmail_valid_sameEmailAllowed() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", null, true));
+
+        String newEmail = "test@email.com";
+
+        var changedUser = userService.changeEmail(user, newEmail);
+        assertEquals(newEmail, changedUser.getEmail());
+
+    }
+
+    @Test
     public void validateUser_invalid_userNull() {
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             userService.validateUser(null);

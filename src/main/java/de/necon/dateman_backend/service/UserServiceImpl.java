@@ -193,11 +193,8 @@ public class UserServiceImpl implements UserService {
 
         validateUser(user);
 
-
-        userRepository.delete(user);
-
         var optional = userRepository.findByEmail(email);
-        if (optional.isPresent()) throw new ServiceError(EMAIL_ALREADY_EXISTS);
+        if (optional.isPresent() && !user.getEmail().equals(email)) throw new ServiceError(EMAIL_ALREADY_EXISTS);
         user.setEmail(email);
 
         try {
