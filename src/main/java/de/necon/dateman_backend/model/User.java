@@ -31,7 +31,6 @@ public class User {
     @NotNull(message = NO_EMAIL)
     @Email(regexp = ".+@.+\\..+", message = EMAIL_NOT_VALID)
     @Column(nullable = false, unique=true)
-    @NaturalId
     @Size(max = RepositoryConfig.MAX_STRING_SIZE)
     private String email;
 
@@ -66,7 +65,6 @@ public class User {
      */
     @Size(max = RepositoryConfig.MAX_STRING_SIZE)
     @Column(name="username", unique=true)
-    @NaturalId
     private String username;
 
     public User() {
