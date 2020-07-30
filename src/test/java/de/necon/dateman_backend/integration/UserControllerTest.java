@@ -26,8 +26,7 @@ import java.io.StringWriter;
 import java.util.Date;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @ActiveProfiles("test")
@@ -101,9 +100,15 @@ public class UserControllerTest {
     @Test
     public void login_enabledUserSucceedsToLogin() throws Exception {
 
-        userRepository.saveAndFlush(enabledUser);
+        var user = userRepository.saveAndFlush(enabledUser);
         var response = login(new LoginDto(enabledUser.getEmail(), enabledUserPassword));
         assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        //check that authorization header is set and contains the token
+        String authorizationHeader = response.getHeader("authorization");
+        assertNotNull(authorizationHeader);
+        String token = tokenService.createToken(user);
+        assertTrue(authorizationHeader.contains(token));
     }
 
     @Test
@@ -479,12 +484,22 @@ public class UserControllerTest {
 
         String newEmail = "new@email.com";
 
-        var response = changeEmail(new EmailDto(newEmail), tokenService.createToken(user));
+        String token = tokenService.createToken(user);
+
+        var response = changeEmail(new EmailDto(newEmail), token);
         assertTrue(response.getStatus() == HttpStatus.OK.value());
 
         var userDto = objectMapper.readValue(response.getContentAsString(), UserDto.class);
         assertEquals(newEmail, userDto.email);
         assertEquals(user.getUsername(), userDto.username);
+
+        //check that authorization header is set and contains the token
+        String authorizationHeader = response.getHeader("authorization");
+        assertNotNull(authorizationHeader);
+
+        //Note: we have to recreate the token since it depends on the email
+        token = tokenService.createToken(userRepository.findById(user.getId()).get());
+        assertTrue(authorizationHeader.contains(token));
     }
 
     @Test
@@ -544,12 +559,20 @@ public class UserControllerTest {
         var user = new User("test@email.com", "password", null, true);
         user = userRepository.save(user);
 
-        var response = changeUsername(new UsernameDto("test"), tokenService.createToken(user));
+        String token = tokenService.createToken(user);
+
+        var response = changeUsername(new UsernameDto("test"), token);
         assertTrue(response.getStatus() == HttpStatus.OK.value());
 
         var userDto = objectMapper.readValue(response.getContentAsString(), UserDto.class);
         assertEquals(user.getEmail(), userDto.email);
         assertEquals("test", userDto.username);
+
+        //check that authorization header is set and contains the token
+        String authorizationHeader = response.getHeader("authorization");
+        assertNotNull(authorizationHeader);
+        assertTrue(authorizationHeader.contains(token));
+
     }
 
     @Test

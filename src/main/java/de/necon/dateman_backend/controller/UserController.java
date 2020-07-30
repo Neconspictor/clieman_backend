@@ -82,6 +82,7 @@ public class UserController {
 
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
         user =  userService.changeUsername(user, dto.getUsername());
+        eventPublisher.publishEvent(new SuccessfulAuthenticationEvent(user, response));
         return new UserDto(user.getEmail(), user.getUsername());
     }
 }
