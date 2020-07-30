@@ -1,5 +1,6 @@
 package de.necon.dateman_backend.repository;
 
+import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.ID;
 import de.necon.dateman_backend.model.User;
@@ -24,4 +25,7 @@ public interface EventRepository extends JpaRepository<Event, ID> {
      */
     @Query("SELECT e FROM Event e WHERE e.id.user = :user")
     List<Event> findAllByUser(@Param("user")User user);
+
+    @Query("SELECT e FROM Event e WHERE :client MEMBER OF e.clients")
+    List<Event> findAllByClient(@Param("client") Client client);
 }

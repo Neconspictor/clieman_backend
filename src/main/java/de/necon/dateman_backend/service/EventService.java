@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.ServiceError;
+import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.User;
 
@@ -15,6 +16,14 @@ public interface EventService {
      * @throws ServiceError If 'user' is null, if 'user' is not stored in the database or an io error occurs.
      */
     List<Event> getEventsOfUser(User user) throws ServiceError;
+
+    /**
+     * Provides all events referencing a client.
+     * @param client The client to retrieve the events from.
+     * @return The events referencing the client.
+     * @throws ServiceError If the client is not stored in the database.
+     */
+    List<Event> getEventsOfClient(Client client) throws ServiceError;
 
     /**
      * Adds a not yet added event to the database.

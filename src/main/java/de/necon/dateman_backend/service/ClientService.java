@@ -2,6 +2,7 @@ package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.Client;
+import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.ID;
 import de.necon.dateman_backend.model.User;
 import org.springframework.dao.DataIntegrityViolationException;

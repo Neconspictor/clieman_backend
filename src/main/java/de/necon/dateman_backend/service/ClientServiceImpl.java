@@ -2,9 +2,11 @@ package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.model.Client;
+import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.ID;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.util.MessageExtractor;
 import org.springframework.beans.factory.annotation.Autowired;

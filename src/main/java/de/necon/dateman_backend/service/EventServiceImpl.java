@@ -1,6 +1,7 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.ServiceError;
+import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.EventRepository;
@@ -31,6 +32,11 @@ public class EventServiceImpl implements EventService {
 
         baseCheck(user);
         return eventRepository.findAllByUser(user);
+    }
+
+    @Override
+    public List<Event> getEventsOfClient(Client client) throws ServiceError {
+        return eventRepository.findAllByClient(client);
     }
 
     @Override

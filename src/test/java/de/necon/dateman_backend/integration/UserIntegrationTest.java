@@ -1,5 +1,7 @@
 package de.necon.dateman_backend.integration;
 
+import de.necon.dateman_backend.model.Client;
+import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.EventRepository;
@@ -16,7 +18,12 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
@@ -91,6 +98,31 @@ public class UserIntegrationTest {
             testEntityManager.persistAndFlush(user);
         }).withStackTraceContaining(errorMessageKeyword);
 
+    }
+
+
+    /**
+     * Checks that data associated to a given user is deleted when the user gets deleted.
+     */
+    @Test
+    public void deleteUser_ClientsAreDeletedTooIfNoEventsReferencingClients() {
+
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var client = modelFactory.createClient("clientID", user, true);
+        //var event = modelFactory.createEvent("eventID", user, List.of(client), true);
+
+        testEntityManager.flush();
+
+
+        // Note: we have to delete all events referencing the client before we delete the client!
+
+        testEntityManager.remove(user);
+        testEntityManager.flush();
+        testEntityManager.clear();
+
+        assertTrue(testEntityManager.find(User.class, user.getId()) == null);
+        assertTrue(testEntityManager.find(Client.class, client.getId()) == null);
+        //assertTrue(testEntityManager.find(Event.class, event.getId()) == null);
     }
 
     private User createSecondValidUser() {

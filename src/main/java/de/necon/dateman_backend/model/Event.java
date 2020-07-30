@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import javax.validation.Valid;
@@ -29,6 +31,7 @@ public class Event implements Serializable  {
 
     @JsonSerialize(contentUsing=ClientSerializer.class) //Note: We only want to serialize the client id string
     @JsonDeserialize(contentUsing = ClientDeserializer.class)
+
     @ManyToMany
     @JoinTable(
             name="EVENT_CLIENTS",
