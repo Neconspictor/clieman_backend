@@ -1,8 +1,16 @@
 package de.necon.dateman_backend.network;
 
-public class PasswordChangeDto {
+import javax.validation.constraints.NotBlank;
+
+public class PasswordChangeDto implements Dto {
+
+    @NotBlank
     private String oldPassword;
+
+    @NotBlank
     private String newPassword;
+
+    @NotBlank
     private String confirmationPassword;
 
     public PasswordChangeDto() {

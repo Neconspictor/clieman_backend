@@ -58,28 +58,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User registerNewUserAccount(RegisterUserDto userDto) throws ServiceError {
+    public User registerNewUserAccount(String email, String password, String username) throws ServiceError {
 
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new ServiceError(EMAIL_ALREADY_EXISTS);
         }
 
-        if (userDto.getUsername() != null &&
-                userRepository.findByUsername(userDto.getUsername()).isPresent()) {
+        if (username != null &&
+                userRepository.findByUsername(username).isPresent()) {
             throw new ServiceError(USERNAME_ALREADY_EXISTS);
         }
 
-        if (userDto.getPassword() == null) {
-            throw new ServiceError(NO_PASSWORD);
-
-        } else if (userDto.getPassword().length() < User.MIN_PASSWORD_LENGTH) {
+        if (password.length() < User.MIN_PASSWORD_LENGTH) {
             throw new ServiceError(PASSWORD_TOO_SHORT);
         }
 
         try {
-            var user = new User(userDto.getEmail(),
-                    encoder.encode(userDto.getPassword()),
-                    userDto.getUsername(), false);
+            var user = new User(email,
+                    encoder.encode(password),
+                    username, false);
             var validator = Validation.buildDefaultValidatorFactory().getValidator();
             validator.validate(user);
 
@@ -128,10 +125,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getDisabledUserByEmail(EmailDto emailDto) throws ServiceError {
-        if (emailDto == null) throw new ServiceError(NO_EMAIL);
-        var email = emailDto.getEmail();
-        if (email == null) throw new ServiceError(NO_EMAIL);
+    public User getDisabledUserByEmail(String email) throws ServiceError {
 
         var optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isEmpty()) throw new ServiceError(USER_NOT_FOUND);
@@ -195,7 +189,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(User user, PasswordChangeDto dto) throws ServiceError {
+    public User changeEmail(User user, String email) throws ServiceError {
+
+        validateUser(user);
+
+
+        userRepository.delete(user);
+
+        var optional = userRepository.findByEmail(email);
+        if (optional.isPresent()) throw new ServiceError(EMAIL_ALREADY_EXISTS);
+        user.setEmail(email);
+
+        try {
+            return userRepository.saveAndFlush(user);
+        } catch (ConstraintViolationException e) {
+            throw new ServiceError(MALFORMED_DATA);
+        }
+    }
+
+    @Override
+    public void changePassword(User user, String oldPassword, String newPassword, String confirmationPassword)
+            throws ServiceError {
 
         if (user == null || user.getId() == null) throw new ServiceError(USER_NOT_FOUND);
         var optionalUser = userRepository.findById(user.getId());
@@ -204,28 +218,28 @@ public class UserServiceImpl implements UserService {
         user = optionalUser.get();
         if (user.isDisabled()) throw new ServiceError(USER_IS_DISABLED);
 
-        if (dto == null
-        || dto.getOldPassword() == null
-        || dto.getNewPassword() == null
-        || dto.getConfirmationPassword() == null)
-            throw new ServiceError(MALFORMED_DATA);
-
-        if (!encoder.matches(dto.getOldPassword(), user.getPassword())) {
+        if (!encoder.matches(oldPassword, user.getPassword())) {
             throw new ServiceError(OLD_PASSWORD_NOT_MATCHING);
         }
-
-        var newPassword = dto.getNewPassword();
 
         if (newPassword.length() < User.MIN_PASSWORD_LENGTH) {
             throw new ServiceError(PASSWORD_TOO_SHORT);
         }
 
-        if (!newPassword.equals(dto.getConfirmationPassword())) {
+        if (!newPassword.equals(confirmationPassword)) {
             throw new ServiceError(NEW_PASSWORD_CONFIRMATION_NOT_MATCHING);
         }
 
         newPassword = encoder.encode(newPassword);
         user.setPassword(newPassword);
         userRepository.saveAndFlush(user);
+    }
+
+    @Override
+    public User validateUser(User user) throws ServiceError {
+        if (user == null || user.getId() == null) throw new ServiceError(USER_NOT_FOUND);
+        var optionalUser = userRepository.findById(user.getId());
+        if (optionalUser.isEmpty()) throw new ServiceError(USER_NOT_FOUND);
+        return optionalUser.get();
     }
 }

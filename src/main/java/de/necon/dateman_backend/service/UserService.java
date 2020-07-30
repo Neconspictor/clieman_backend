@@ -1,9 +1,6 @@
 package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.exception.*;
-import de.necon.dateman_backend.network.EmailDto;
-import de.necon.dateman_backend.network.PasswordChangeDto;
-import de.necon.dateman_backend.network.RegisterUserDto;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
 import org.springframework.transaction.annotation.Propagation;
@@ -24,13 +21,15 @@ public interface UserService {
 
     /**
      * Registers a new user account.
-     * @param userDto Used for creating and registering the user.
+     * @param email: The email of the new user.
+     * @aram password: The (not encrypted) password
+     * @param username: (optional) the username. Can be null
      * @return The created user.
      * @throws ServiceError : thrown if no valid User object can be created and stored into the database or
      *  another user with the same email or username already exists. If the password length is too short
      *  (compare User.MIN_PASSWORD_LENGTH), this exception is thrown, too.
      */
-    User registerNewUserAccount(RegisterUserDto userDto)
+    User registerNewUserAccount(String email, String password, String username)
             throws ServiceError;
 
     /**
@@ -58,11 +57,11 @@ public interface UserService {
 
     /**
      * Provides a disabled user identified by its email.
-     * @param emailDto Holds the email of the user.
+     * @param email The email of the user
      * @return The found user.
      * @throws ServiceError If no disabled user could be found.
      */
-    User getDisabledUserByEmail(EmailDto emailDto) throws ServiceError;
+    User getDisabledUserByEmail(String email) throws ServiceError;
 
     /**
      * Updates an enabled user in the database.
@@ -99,12 +98,30 @@ public interface UserService {
      */
     VerificationToken getVerificationToken(String verificationToken) throws ServiceError;
 
+
+    /**
+     * Changes the email of a user.
+     * @param email The new email for the user.
+     * @return The updated user.
+     * @throws ServiceError If the new email is already occupied by another user;
+     */
+    User changeEmail(User user, String email) throws ServiceError;
+
     /**
      * Changes the password of a user.
-     * @param dto The password change request.
      * @throws ServiceError If the old password does not match with the stored old password; if the confirmation password
      * does not match the new password; if the user is not enabled or does not exist;
-     * if the dto or any of its data is null.
      */
-    void changePassword(User user, PasswordChangeDto dto) throws ServiceError;
+    void changePassword(User user, String oldPassword,
+                        String newPassword,
+                        String confirmationPassword) throws ServiceError;
+
+    /**
+     * Validates a given user.
+     * A user is valid if he is not null, has a not null id and is stored in the database.
+     * @param user The user to validate.
+     * @return The user stored in the database.
+     * @throws ServiceError If the user was not found.
+     */
+    User validateUser(User user) throws ServiceError;
 }

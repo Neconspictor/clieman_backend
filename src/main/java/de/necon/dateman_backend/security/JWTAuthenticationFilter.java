@@ -1,12 +1,15 @@
 package de.necon.dateman_backend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.necon.dateman_backend.events.SuccessfulAuthenticationEvent;
 import de.necon.dateman_backend.network.ExceptionToMessageMapper;
 import de.necon.dateman_backend.network.LoginDto;
 import de.necon.dateman_backend.network.LoginResponseDto;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.service.JWTTokenService;
 import de.necon.dateman_backend.util.ResponseWriter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,6 +34,9 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     private final ResponseWriter responseWriter;
 
     private final ExceptionToMessageMapper exceptionToMessageMapper;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     private final JWTTokenService tokenService;
 
@@ -72,7 +78,6 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             FilterChain chain,
                                             Authentication auth) throws IOException, ServletException {
 
-        final String secret = tokenService.getSecret();
         String email = ((User)auth.getPrincipal()).getUsername(); // User class of userdetails!
         var optionalUser = userRepository.findByEmail(email);
 
@@ -80,9 +85,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         var user = optionalUser.get();
 
 
-        String token = tokenService.createToken(user);
-        var tokenHeader = tokenService.createTokenHeader(token);
-        res.addHeader(tokenHeader.getValue0(), tokenHeader.getValue1());
+        eventPublisher.publishEvent(new SuccessfulAuthenticationEvent(user, res));
 
         LoginResponseDto body = new LoginResponseDto(user.getEmail(), user.getUsername());
         responseWriter.writeOkRequest(body, res);

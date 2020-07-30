@@ -1,6 +1,12 @@
 package de.necon.dateman_backend.network;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 public class EmailDto {
+
+    @NotNull
+    @NotBlank
     private String email;
 
     public EmailDto() {

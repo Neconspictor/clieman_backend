@@ -226,6 +226,14 @@ public class UserControllerTest {
         assertTrue(userOfToken.equals(savedUser));
     }
 
+    @Test
+    public void register_usernameNullIsAllowed() throws Exception {
+
+        var user = new RegisterUserDto("new@user.com", "password", null);
+        var response = registerUser(user);
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+    }
+
 
     @Test
     public void confirmUser_tokenActivatesUserAccount() throws Exception {

@@ -1,12 +1,19 @@
 package de.necon.dateman_backend.network;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 /**
  * Data Transfer object for login
  */
 public class LoginDto {
 
+    @NotNull
+    @NotBlank
     private String password;
 
+    @NotNull
+    @NotBlank
     private String principal;
 
     public LoginDto() {

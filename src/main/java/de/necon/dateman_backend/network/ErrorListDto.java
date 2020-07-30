@@ -3,7 +3,7 @@ package de.necon.dateman_backend.network;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ErrorListDto {
+public class ErrorListDto implements Dto {
     private List<String> errors;
 
     public ErrorListDto() {

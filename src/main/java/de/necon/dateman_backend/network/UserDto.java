@@ -1,10 +1,15 @@
 package de.necon.dateman_backend.network;
 
-public class RegisterResponseDto {
+import javax.validation.constraints.NotBlank;
+
+public class UserDto implements Dto {
+
+    @NotBlank
     public final String email;
+
     public final String username;
 
-    public RegisterResponseDto(String email, String username) {
+    public UserDto(String email, String username) {
         this.email = email;
         this.username = username;
     }

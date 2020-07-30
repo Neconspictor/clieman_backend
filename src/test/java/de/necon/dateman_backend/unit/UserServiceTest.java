@@ -1,12 +1,11 @@
-package de.necon.dateman_backend.integration;
+package de.necon.dateman_backend.unit;
 
 import de.necon.dateman_backend.config.RepositoryConfig;
 import de.necon.dateman_backend.exception.ServiceError;
 import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
-import de.necon.dateman_backend.network.PasswordChangeDto;
-import de.necon.dateman_backend.network.RegisterUserDto;
+import de.necon.dateman_backend.network.EmailDto;
 import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
@@ -19,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
@@ -58,7 +58,7 @@ public class UserServiceTest {
     @Test
     public void registerNewUserAccount_NewUserIsAdded() throws ServiceError {
 
-        var user = userService.registerNewUserAccount(new RegisterUserDto("test@email.com", "password", "username"));
+        var user = userService.registerNewUserAccount("test@email.com", "password", "username");
         assertTrue(userRepository.findByEmail(user.getEmail()).isPresent());
     }
 
@@ -67,14 +67,16 @@ public class UserServiceTest {
 
         assertTrue(userRepository.findAll().size() == 0);
 
-        var dto = new RegisterUserDto("test@email.com", "password", "username");
+        String email = "test@email.com";
+        String password = "password";
+        String username = "username";
 
-        userService.registerNewUserAccount(dto);
+        userService.registerNewUserAccount(email, password, username);
 
         assertTrue(userRepository.findAll().size() == 1);
 
         ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.registerNewUserAccount(dto);
+            userService.registerNewUserAccount(email, password, username);
         }).source();
 
         var errors = serviceError.getErrors();
@@ -92,11 +94,12 @@ public class UserServiceTest {
         RandomStringGenerator generator = new RandomStringGenerator.Builder()
                 .withinRange('0', 'Z').build();
 
-        var dto = new RegisterUserDto("test@email.com", generator.generate(User.MIN_PASSWORD_LENGTH - 1),
-                "username");
+        String email = "test@email.com";
+        String password = generator.generate(User.MIN_PASSWORD_LENGTH - 1);
+        String username = "username";
 
         ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.registerNewUserAccount(dto);
+            userService.registerNewUserAccount(email, password, username);
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), PASSWORD_TOO_SHORT);
@@ -113,21 +116,21 @@ public class UserServiceTest {
         RandomStringGenerator generator = new RandomStringGenerator.Builder()
                 .withinRange('0', 'Z').build();
 
-        var dto = new RegisterUserDto("test@email.com",
-                generator.generate(RepositoryConfig.MAX_STRING_SIZE * 2 + 1),
-                "username");
+        String email = "test@email.com";
+        String password = generator.generate(RepositoryConfig.MAX_STRING_SIZE * 2 + 1);
+        String username = "username";
 
-        userService.registerNewUserAccount(dto);
+        userService.registerNewUserAccount(email, password, username);
     }
 
     @Test
     public void registerNewUserAccount_NoEmailNotAllowed() {
 
-        var dto = new RegisterUserDto(null, "password",
-                "username");
+        String password = "password";
+        String username = "username";
 
         ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.registerNewUserAccount(dto);
+            userService.registerNewUserAccount(null, password, username);
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), NO_EMAIL);
@@ -136,11 +139,12 @@ public class UserServiceTest {
     @Test
     public void registerNewUserAccount_EmptyEmailNotAllowed() {
 
-        var dto = new RegisterUserDto("", "password",
-                "username");
+        String email = "";
+        String password = "password";
+        String username = "username";
 
         ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.registerNewUserAccount(dto);
+            userService.registerNewUserAccount(email, password, username);
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), EMAIL_NOT_VALID);
@@ -149,11 +153,11 @@ public class UserServiceTest {
     @Test
     public void registerNewUserAccount_InvalidEmailNotAllowed() {
 
-        var dto = new RegisterUserDto("test.com", "password",
-                "username");
-
+        String email = "test.com";
+        String password = "password";
+        String username = "username";
         ServiceError serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.registerNewUserAccount(dto);
+            userService.registerNewUserAccount(email, password, username);
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), EMAIL_NOT_VALID);
@@ -162,9 +166,11 @@ public class UserServiceTest {
     @Test
     public void createVerificationToken_validCreation() throws ServiceError {
 
-        var dto = new RegisterUserDto("test@email.com", "password",
-                "username");
-        var user = userService.registerNewUserAccount(dto);
+        String email = "test@email.com";
+        String password = "password";
+        String username = "username";
+
+        var user = userService.registerNewUserAccount(email, password, username);
         var tokenString = "012583";
         var verificationToken = userService.createVerificationToken(user, tokenString);
         assertEquals(verificationToken.getToken(), tokenString);
@@ -412,8 +418,11 @@ public class UserServiceTest {
     @Test
     public void verifyUserAccount_verificationWorks() throws ServiceError {
 
-        var registerUserDto = new RegisterUserDto("test2@demail.de", "password", "username");
-        var user = userService.registerNewUserAccount(registerUserDto);
+        String email = "test2@demail.de";
+        String password = "password";
+        String username = "username";
+
+        var user = userService.registerNewUserAccount(email, password, username);
         var token = userService.createVerificationToken(user, "012345");
 
         userService.verifyUserAccount(token.getToken());
@@ -439,8 +448,11 @@ public class UserServiceTest {
     @Test
     public void getUserByPrincipal_EmailWorks() throws ServiceError {
 
-        var registerUserDto = new RegisterUserDto("test@email.com", "password", "username");
-        var user = userService.registerNewUserAccount(registerUserDto);
+        String email = "test@email.de";
+        String password = "password";
+        String username = "username";
+
+        var user = userService.registerNewUserAccount(email, password, username);
         var retrievedUser = userService.getUserByPrincipal(user.getEmail());
         assertEquals(user, retrievedUser);
     }
@@ -448,8 +460,11 @@ public class UserServiceTest {
     @Test
     public void getUserByPrincipal_UsernameWorks() throws ServiceError {
 
-        var registerUserDto = new RegisterUserDto("test@email.com", "password", "username");
-        var user = userService.registerNewUserAccount(registerUserDto);
+        String email = "test@email.de";
+        String password = "password";
+        String username = "username";
+
+        var user = userService.registerNewUserAccount(email, password, username);
         var retrievedUser = userService.getUserByPrincipal(user.getUsername());
         assertEquals(user, retrievedUser);
     }
@@ -467,8 +482,8 @@ public class UserServiceTest {
     @Test
     public void changePassword_invalid_userNull() {
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(null, new PasswordChangeDto(
-                    "old", "new", "new"));
+            userService.changePassword(null,
+                    "old", "new", "new");
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
@@ -477,8 +492,8 @@ public class UserServiceTest {
     @Test
     public void changePassword_invalid_userIdNull() {
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(new User(), new PasswordChangeDto(
-                    "old", "new", "new"));
+            userService.changePassword(new User(),
+                    "old", "new", "new");
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
@@ -489,8 +504,8 @@ public class UserServiceTest {
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             var user = new User();
             user.setId(933L);
-            userService.changePassword(user, new PasswordChangeDto(
-                    "old", "new", "new"));
+            userService.changePassword(user,
+                    "old", "new", "new");
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
@@ -503,8 +518,8 @@ public class UserServiceTest {
                 encoder.encode("password"), null, true));
 
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(user, new PasswordChangeDto(
-                    "password2", "new", "new"));
+            userService.changePassword(user,
+                    "password2", "new", "new");
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), OLD_PASSWORD_NOT_MATCHING);
@@ -517,47 +532,12 @@ public class UserServiceTest {
                 null, false));
 
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(user, new PasswordChangeDto(
-                    "old", "new", "new"));
+            userService.changePassword(user,
+                    "old", "new", "new");
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), USER_IS_DISABLED);
     }
-
-    @Test
-    public void changePassword_invalid_anythingNullInDto() {
-
-        var user = userRepository.saveAndFlush(new User("test@email.com",
-                encoder.encode("password"), null, true));
-
-        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(user, null);
-        }).source();
-
-        Asserter.assertContainsError(serviceError.getErrors(), MALFORMED_DATA);
-
-        serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(user, new PasswordChangeDto(
-                    null, "new", "new"));
-        }).source();
-
-        Asserter.assertContainsError(serviceError.getErrors(), MALFORMED_DATA);
-
-        serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(user, new PasswordChangeDto(
-                    "password", null, "newPassword"));
-        }).source();
-
-        Asserter.assertContainsError(serviceError.getErrors(), MALFORMED_DATA);
-
-        serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(user, new PasswordChangeDto(
-                    "password", "newPassword", null));
-        }).source();
-
-        Asserter.assertContainsError(serviceError.getErrors(), MALFORMED_DATA);
-    }
-
 
     @Test
     public void changePassword_invalid_newPasswordConfirmationNotMatching() {
@@ -566,8 +546,8 @@ public class UserServiceTest {
                 encoder.encode("password"), null, true));
 
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(user, new PasswordChangeDto("password",
-                    "newPassword", "newPassword2"));
+            userService.changePassword(user, "password",
+                    "newPassword", "newPassword2");
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), NEW_PASSWORD_CONFIRMATION_NOT_MATCHING);
@@ -580,8 +560,8 @@ public class UserServiceTest {
                 encoder.encode("password"), null, true));
 
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.changePassword(user, new PasswordChangeDto("password",
-                    "new", "new"));
+            userService.changePassword(user,"password",
+                    "new", "new");
         }).source();
 
         Asserter.assertContainsError(serviceError.getErrors(), PASSWORD_TOO_SHORT);
@@ -592,13 +572,87 @@ public class UserServiceTest {
 
         var user = userRepository.saveAndFlush(new User("test@email.com",
                 encoder.encode("password"), null, true));
-        var dto = new PasswordChangeDto("password",
-                "newPassword", "newPassword");
 
-        userService.changePassword(user, dto);
+        var newPassword = "newPassword";
+        userService.changePassword(user, "password",
+                newPassword, "newPassword");
         var storedUser = userRepository.findById(user.getId()).get();
-        var newPassword = dto.getNewPassword();
+
 
         assertTrue(encoder.matches(newPassword, storedUser.getPassword()));
+    }
+
+    @Test
+    public void changeEmail_invalid_userNull() {
+
+        String email = "new@email.com";
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changeEmail(null, email);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void changeEmail_invalid_EmailNull() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", null, true));
+
+        Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.changeEmail(user, null);
+        });
+    }
+
+    @Test
+    public void changeEmail_valid() {
+
+        var user = userRepository.saveAndFlush(new User("test@email.com",
+                "password", null, true));
+
+        String newEmail = "new@email.com";
+
+        var changedUser = userService.changeEmail(user, newEmail);
+        assertEquals(newEmail, changedUser.getEmail());
+
+    }
+
+    @Test
+    public void validateUser_invalid_userNull() {
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.validateUser(null);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void validateUser_invalid_userIdNull() {
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.validateUser(new User());
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void validateUser_invalid_userNotStored() {
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            var user = new User("test@email.com", "password", "test", true);
+            user.setId(983L);
+            userService.validateUser(user);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void validateUser_valid() {
+
+        var user = userRepository.saveAndFlush(
+                new User("test@email.com", "password", "test", true));
+
+        userService.validateUser(user);
     }
 }

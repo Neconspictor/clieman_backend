@@ -1,11 +1,18 @@
 package de.necon.dateman_backend.network;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * Data Transfer object for registering a user
  */
-public class RegisterUserDto {
+public class RegisterUserDto implements Dto {
+
+    @NotBlank
     private String email;
+
+    @NotBlank
     private String password;
+
     private String username;
 
     public RegisterUserDto() {

@@ -1,6 +1,10 @@
 package de.necon.dateman_backend.network;
 
-public class TokenDto {
+import javax.validation.constraints.NotBlank;
+
+public class TokenDto implements Dto {
+
+    @NotBlank
     private String token;
 
     public TokenDto() {

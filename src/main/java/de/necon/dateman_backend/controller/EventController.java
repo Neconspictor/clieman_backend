@@ -1,9 +1,10 @@
 package de.necon.dateman_backend.controller;
 
-import de.necon.dateman_backend.model.Client;
 import de.necon.dateman_backend.model.Event;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.service.EventService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,9 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     public EventController(EventService eventService) {
         this.eventService = eventService;
