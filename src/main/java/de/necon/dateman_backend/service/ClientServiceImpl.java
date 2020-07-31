@@ -9,7 +9,10 @@ import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.util.MessageExtractor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +25,8 @@ import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 @Service
 @Transactional
 public class ClientServiceImpl implements ClientService {
+
+    private static Logger logger = LoggerFactory.getLogger(ClientServiceImpl.class);
 
     @Autowired
     UserRepository userRepository;
@@ -73,10 +78,9 @@ public class ClientServiceImpl implements ClientService {
 
         try {
             clientRepository.saveAndFlush(client);
-        } catch(ConstraintViolationException e) {
-            throw new ServiceError(MessageExtractor.extract(e));
-        } catch (JpaSystemException e) {
-            throw new ServiceError(List.of(e.getMessage()));
+        } catch(ConstraintViolationException | JpaSystemException e) {
+            logger.error(e.toString());
+            throw new ServiceError(List.of(CLIENT_CANNOT_BE_UPDATED));
         }
     }
 
@@ -85,8 +89,13 @@ public class ClientServiceImpl implements ClientService {
         var optional = clientRepository.findById(client.getId());
         if (optional.isEmpty()) throw new ServiceError(CLIENT_NOT_FOUND);
 
-        clientRepository.delete(client);
-        clientRepository.flush();
+        try {
+            clientRepository.delete(client);
+            clientRepository.flush();
+        } catch (Exception e) {
+            logger.error(e.toString());
+            throw new ServiceError(CLIENT_CANNOT_BE_DELETED);
+        }
     }
 
     private void checkUser(User user) {

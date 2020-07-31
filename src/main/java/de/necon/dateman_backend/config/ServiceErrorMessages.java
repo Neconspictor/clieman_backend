@@ -28,6 +28,9 @@ public class ServiceErrorMessages {
     public static final String CLIENT_NOT_FOUND = "ClientNotFound";
     public static final String CLIENT_ALREADY_EXISTS = "ClientAlreadyExists";
     public static final String CLIENT_CHANGING_USER_NOT_ALLOWED = "ClientChangingUserNotAllowed";
+    public static final String CLIENT_CANNOT_BE_DELETED = "ClientCannotBeDeleted";
+    public static final String CLIENT_CANNOT_BE_UPDATED = "ClientCannotBeUpdated";
+
     public static final String INVALID_ID = "InvalidId";
 
     public static final String NO_EVENT = "NoEvent";

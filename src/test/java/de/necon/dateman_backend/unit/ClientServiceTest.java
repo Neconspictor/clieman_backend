@@ -20,6 +20,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
 import java.util.Date;
+import java.util.List;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 
@@ -246,6 +247,22 @@ public class ClientServiceTest {
         Assertions.assertTrue(clientRepository.findAll().size() == 0);
     }
 
+    @Test
+    public void removeClient_invalid_referencingEvent() {
+
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var client = modelFactory.createClient("id", user, true);
+        var event = modelFactory.createEvent("event", user, List.of(client), true);
+
+        client.setAddress("new address");
+
+        var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.removeClient(client);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_CANNOT_BE_DELETED);
+    }
+
 
 
     @Test
@@ -325,5 +342,16 @@ public class ClientServiceTest {
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
             clientService.updateClient(client);
         }).source();
+    }
+
+    @Test
+    public void updateClient_referencingEventAllowed() {
+        var user = modelFactory.createUser("test@email.com", true, true);
+        var client = modelFactory.createClient("id", user, true);
+        var event = modelFactory.createEvent("event", user, List.of(client), true);
+        //now change the client and assert that the changes will be adopted.
+
+        client.setAddress("new address");
+        clientService.updateClient(client);
     }
 }
