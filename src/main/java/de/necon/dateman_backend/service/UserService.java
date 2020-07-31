@@ -12,14 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 public interface UserService {
 
     /**
-     * Deletes a user.
-     * @param user The user to be deleted.
-     * @throws ServiceError If the user is not stored in the database or the user cannot be deleted since he is referenced
-     * by other entities (e.g. verification tokens).
-     */
-    void deleteUser(User user) throws ServiceError;
-
-    /**
      * Registers a new user account.
      * @param email: The email of the new user.
      * @aram password: The (not encrypted) password
@@ -91,6 +83,14 @@ public interface UserService {
     void deleteExistingVerificationToken(User user);
 
     /**
+     * Deletes a user.
+     * @param user The user to be deleted.
+     * @throws ServiceError If the user is not stored in the database or the user cannot be deleted since he is referenced
+     * by other entities (e.g. verification tokens).
+     */
+    void deleteUser(User user) throws ServiceError;
+
+    /**
      * Provides a verification token.
      * @param verificationToken The token to search.
      * @return The found token.
@@ -124,6 +124,7 @@ public interface UserService {
      */
     User changeUsername(User user, String username) throws ServiceError;
 
+
     /**
      * Validates a given user.
      * A user is valid if he is not null, has a not null id, is enabled and is stored in the database.
@@ -132,6 +133,16 @@ public interface UserService {
      * @throws ServiceError If the user was not found.
      */
     User validateUser(User user) throws ServiceError;
+
+    /**
+     * Validates a given user.
+     * A user is valid if he is not null, has a not null id, is enabled and is stored in the database.
+     * @param user The user to validate.
+     * @param allowDisabled : If true disabled users are treated as valid.
+     * @return The user stored in the database.
+     * @throws ServiceError If the user was not found.
+     */
+    User validateUser(User user, boolean allowDisabled) throws ServiceError;
 
     /**
      * Validates that a username is valid.

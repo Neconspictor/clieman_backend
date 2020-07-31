@@ -6,10 +6,12 @@ import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
 import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.service.UserService;
 import de.necon.dateman_backend.util.Asserter;
+import de.necon.dateman_backend.util.ModelFactory;
 import org.apache.commons.text.RandomStringGenerator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -17,11 +19,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,10 +53,27 @@ public class UserServiceTest {
     private ClientRepository clientRepository;
 
     @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
     private VerificationTokenRepository tokenRepository;
 
     @Autowired
     private PasswordEncoder encoder;
+
+    @Autowired
+    ModelFactory modelFactory;
+
+    @TestConfiguration
+    public static class Config {
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
+
+        }
+    }
 
 
     @Test
@@ -702,6 +725,61 @@ public class UserServiceTest {
         //check that the username is changed indead
         user = userRepository.findById(user.getId()).get();
         assertEquals("test2", user.getUsername());
+    }
+
+    @Test
+    public void deleteUser_invalid_userNull() {
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.deleteUser(null);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void deleteUser_invalid_userNotStored() {
+
+        var user = modelFactory.createUser("test@email.com", true, false);
+        user.setId(34L);
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.deleteUser(user);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
+    }
+
+    @Test
+    public void deleteUser_valid_disabledUser() {
+
+        var user = modelFactory.createUser("test@email.com", false, true);
+        userService.deleteUser(user);
+    }
+
+    @Test
+    public void deleteUser_valid_verificationToken() {
+
+        var user = modelFactory.createUser("test@email.com", false, true);
+        tokenRepository.saveAndFlush(new VerificationToken("token", user));
+        userService.deleteUser(user);
+    }
+
+    @Test
+    public void deleteUser_valid_withClientsAndEvents() {
+
+        var user = modelFactory.createUser("test@email.com", false, true);
+        var client = modelFactory.createClient("client", user, true);
+        var client2 = modelFactory.createClient("client2", user, true);
+        modelFactory.createClient("client3", user, true);
+        modelFactory.createEvent("event", user, List.of(), true);
+        modelFactory.createEvent("event2", user, List.of(client), true);
+        modelFactory.createEvent("event3", user, List.of(client2, client), true);
+
+        userService.deleteUser(user);
+        assertEquals(0, userRepository.findAll().size());
+        assertEquals(0, clientRepository.findAll().size());
+        assertEquals(0, eventRepository.findAll().size());
     }
 
     @Test

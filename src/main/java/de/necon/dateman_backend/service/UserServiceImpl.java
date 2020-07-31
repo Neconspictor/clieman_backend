@@ -3,6 +3,7 @@ package de.necon.dateman_backend.service;
 import de.necon.dateman_backend.exception.*;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.model.VerificationToken;
+import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.util.MessageExtractor;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
 import java.util.Date;
@@ -32,6 +34,12 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
 
     @Autowired
+    EventRepository eventRepository;
+
+    @Autowired
+    EventService eventService;
+
+    @Autowired
     private VerificationTokenRepository tokenRepository;
 
     @Autowired
@@ -43,9 +51,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(User user) throws ServiceError {
 
-        user = getUserByPrincipal(user.getEmail());
+        user = validateUser(user, true);
 
         try {
+            //Note: we have to delete events first, clients are than automatically
+            // deleted when deleting the user.
+            var events = eventService.getEventsOfUser(user);
+            eventRepository.deleteAll(events);
+            var optionalToken = tokenRepository.findByUser(user);
+            if (optionalToken.isPresent()) tokenRepository.delete(optionalToken.get());
+
             userRepository.deleteById(user.getId());
             userRepository.flush();
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
@@ -190,7 +205,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User changeEmail(User user, String email) throws ServiceError {
 
-        validateUser(user);
+        validateUser(user, false);
 
         var optional = userRepository.findByEmail(email);
         if (optional.isPresent() && !user.getEmail().equals(email)) throw new ServiceError(EMAIL_ALREADY_EXISTS);
@@ -234,7 +249,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User changeUsername(User user, String username) throws ServiceError {
 
-        validateUser(user);
+        validateUser(user, false);
         user = userRepository.findByEmail(user.getEmail()).get();
 
         var userUsername = user.getUsername();
@@ -248,11 +263,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User validateUser(User user) throws ServiceError {
+        return validateUser(user, false);
+    }
+
+    @Override
+    public User validateUser(User user, boolean allowDisabled) throws ServiceError {
         if (user == null || user.getId() == null) throw new ServiceError(USER_NOT_FOUND);
         var optionalUser = userRepository.findById(user.getId());
         if (optionalUser.isEmpty()) throw new ServiceError(USER_NOT_FOUND);
         user = optionalUser.get();
-        if (user.isDisabled()) throw new ServiceError(USER_IS_DISABLED);
+        if (!allowDisabled && user.isDisabled()) throw new ServiceError(USER_IS_DISABLED);
         return user;
     }
 
