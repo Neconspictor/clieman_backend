@@ -5,16 +5,20 @@ import com.icegreen.greenmail.store.FolderException;
 import de.necon.dateman_backend.config.ServiceErrorMessages;
 import de.necon.dateman_backend.network.*;
 import de.necon.dateman_backend.repository.ClientRepository;
+import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.repository.VerificationTokenRepository;
 import de.necon.dateman_backend.extensions.TestSmtpServer;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.service.JWTTokenService;
 import de.necon.dateman_backend.util.Asserter;
+import de.necon.dateman_backend.util.ModelFactory;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -67,6 +71,20 @@ public class UserControllerTest {
     private static final String notExistingUser = "not@existing.com";
 
     private static int MAIL_PORT;
+
+    @Autowired
+    ModelFactory modelFactory;
+
+    @TestConfiguration
+    public static class Config {
+        @Bean
+        ModelFactory modelFactory(@Autowired UserRepository userRepository,
+                                  @Autowired ClientRepository clientRepository,
+                                  @Autowired EventRepository eventRepository) {
+            return new ModelFactory(userRepository, clientRepository, eventRepository);
+
+        }
+    }
 
 
     @BeforeAll
@@ -572,6 +590,70 @@ public class UserControllerTest {
         String authorizationHeader = response.getHeader("authorization");
         assertNotNull(authorizationHeader);
         assertTrue(authorizationHeader.contains(token));
+    }
+
+    @Test
+    public void deleteUser_invalid_passwordWrong() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, false);
+        var rawPassword = "password";
+        user.setPassword(encoder.encode(rawPassword));
+        user = userRepository.save(user);
+
+        String token = tokenService.createToken(user);
+
+        var response = deleteUser(new PasswordDto("wrongPassword"), token);
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errors = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        Asserter.assertContainsError(errors.getErrors(), PASSWORD_WRONG);
+    }
+
+    @Test
+    public void deleteUser_invalid_dtoNull() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, false);
+        var rawPassword = "password";
+        user.setPassword(encoder.encode(rawPassword));
+        user = userRepository.save(user);
+
+        String token = tokenService.createToken(user);
+
+        var response = deleteUser(null, token);
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errors = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        Asserter.assertContainsError(errors.getErrors(), MALFORMED_DATA);
+    }
+
+    @Test
+    public void deleteUser_invalid_passwordBlank() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, false);
+        var rawPassword = "password";
+        user.setPassword(encoder.encode(rawPassword));
+        user = userRepository.save(user);
+
+        String token = tokenService.createToken(user);
+
+        var response = deleteUser(new PasswordDto(" "), token);
+        assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
+
+        var errors = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
+        Asserter.assertContainsError(errors.getErrors(), MALFORMED_DATA);
+    }
+
+    @Test
+    public void deleteUser_valid() throws Exception {
+        var user = modelFactory.createUser("test@email.com", true, false);
+        var rawPassword = "password";
+        user.setPassword(encoder.encode(rawPassword));
+        user = userRepository.saveAndFlush(user);
+
+        String token = tokenService.createToken(user);
+
+        var response = deleteUser(new PasswordDto(rawPassword), token);
+        assertTrue(response.getStatus() == HttpStatus.OK.value());
+
+        //check that user is deleted
+        assertEquals(0, userRepository.findAll().size());
 
     }
 
@@ -652,6 +734,17 @@ public class UserControllerTest {
         var writer = new StringWriter();
         objectMapper.writeValue(writer, dto);
         return mvc.perform(post("/user/changeUsername")
+                .header(header.getValue0(), header.getValue1())
+                .secure(true)
+                .contentType("application/json")
+                .content(writer.toString())).andReturn().getResponse();
+    }
+
+    private MockHttpServletResponse deleteUser(PasswordDto dto, String token) throws Exception {
+        var header = JWTTokenService.createTokenHeader(token);
+        var writer = new StringWriter();
+        objectMapper.writeValue(writer, dto);
+        return mvc.perform(post("/user/deleteUser")
                 .header(header.getValue0(), header.getValue1())
                 .secure(true)
                 .contentType("application/json")

@@ -85,4 +85,12 @@ public class UserController {
         eventPublisher.publishEvent(new SuccessfulAuthenticationEvent(user, response));
         return new UserDto(user.getEmail(), user.getUsername());
     }
+
+    @PostMapping("/user/deleteUser")
+    public void deleteUser(@Valid @RequestBody PasswordDto dto, final HttpServletResponse response) throws IOException {
+
+        var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        userService.validatePassword(user, dto.getPassword());
+        userService.deleteUser(user);
+    }
 }

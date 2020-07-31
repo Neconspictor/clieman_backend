@@ -8,6 +8,7 @@ public class ServiceErrorMessages {
     public static final String INVALID_LOGIN = "InvalidLogin";
 
     public static final String NO_PASSWORD = "NoPassword";
+    public static final String PASSWORD_WRONG = "PasswordWrong";
     public static final String PASSWORD_TOO_SHORT = "PasswordTooShort";
     public static final String PASSWORD_TOO_LONG = "PasswordTooLong";
     public static final String USERNAME_ALREADY_EXISTS = "UserNameAlreadyExists";

@@ -262,6 +262,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void validatePassword(User user, String rawPassword) throws ServiceError {
+
+        if (user == null || rawPassword == null) {
+            throw new IllegalArgumentException("user or password are null");
+        }
+
+        var optionalUser = userRepository.findByEmail(user.getEmail());
+        if (optionalUser.isEmpty()) throw new IllegalArgumentException("Expected user to be valid!");
+        user = optionalUser.get();
+
+        if (!encoder.matches(rawPassword, user.getPassword())) {
+            throw new ServiceError(PASSWORD_WRONG);
+        }
+    }
+
+    @Override
     public User validateUser(User user) throws ServiceError {
         return validateUser(user, false);
     }

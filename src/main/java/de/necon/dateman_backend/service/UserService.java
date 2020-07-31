@@ -85,8 +85,8 @@ public interface UserService {
     /**
      * Deletes a user.
      * @param user The user to be deleted.
-     * @throws ServiceError If the user is not stored in the database or the user cannot be deleted since he is referenced
-     * by other entities (e.g. verification tokens).
+     * @throws ServiceError If the user is not stored in the database or
+     * the given password does not match the encoded stored password of the user.
      */
     void deleteUser(User user) throws ServiceError;
 
@@ -123,6 +123,16 @@ public interface UserService {
      * @throws ServiceError If the new username is already occupied by another user (except if the username is null/empty);
      */
     User changeUsername(User user, String username) throws ServiceError;
+
+
+    /**
+     * Validates that the provided 'raw password' matches the encoded password of a user.
+     * @param user The user having an encoded password.
+     * @param rawPassword The password to validate.
+     * @throws ServiceError If the raw password does not match the encoded password of the user.
+     * @throws IllegalArgumentException if the user or the rawPassword is null.
+     */
+    void validatePassword(User user, String rawPassword) throws ServiceError;
 
 
     /**

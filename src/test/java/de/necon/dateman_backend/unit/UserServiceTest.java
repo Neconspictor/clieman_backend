@@ -767,6 +767,50 @@ public class UserServiceTest {
     }
 
     @Test
+    public void validatePassword_invalid_userNull() {
+        Asserter.assertException(IllegalArgumentException.class).isThrownBy(()->{
+            userService.validatePassword(null, "password");
+        });
+    }
+
+    @Test
+    public void validatePassword_invalid_passwordNull() {
+
+        var user = modelFactory.createUser("test@email.com", true, true);
+        user.setPassword(encoder.encode("password"));
+        var storedUser = userRepository.saveAndFlush(user);
+
+        Asserter.assertException(IllegalArgumentException.class).isThrownBy(()->{
+            userService.validatePassword(storedUser, null);
+        });
+    }
+
+    @Test
+    public void validatePassword_invalid_passwordNotMatching() {
+
+        var user = modelFactory.createUser("test@email.com", true, true);
+        user.setPassword(encoder.encode("password"));
+        var storedUser = userRepository.saveAndFlush(user);
+
+        var error = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.validatePassword(storedUser, "wrongPassword");
+        }).source();
+
+        Asserter.assertContainsError(error.getErrors(), PASSWORD_WRONG);
+    }
+
+    @Test
+    public void validatePassword_invalid_userNotStored() {
+
+        var user = modelFactory.createUser("test@email.com", true, false);
+        user.setPassword(encoder.encode("password"));
+
+        Asserter.assertException(IllegalArgumentException.class).isThrownBy(()->{
+            userService.validatePassword(user, "password");
+        });
+    }
+
+    @Test
     public void validateUser_invalid_userNull() {
         var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
             userService.validateUser(null);
