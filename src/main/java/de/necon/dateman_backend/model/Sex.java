@@ -1,5 +1,8 @@
 package de.necon.dateman_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Sex {
 
     DIVERSE("diverse"),
@@ -15,5 +18,17 @@ public enum Sex {
     @Override
     public String toString() {
         return name;
+    }
+
+    @JsonCreator
+    public static Sex fromString(String name) {
+        return name == null
+                ? null
+                : Sex.valueOf(name.toUpperCase());
+    }
+
+    @JsonValue
+    public String getName() {
+        return name.toLowerCase();
     }
 }
