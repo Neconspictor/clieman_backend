@@ -34,13 +34,12 @@ public interface ClientService {
     /**
      * Updates the data of a client, that was previously added to the database.
      * @param client The new client data.
-     * @param id Identifies the stored client to be updated.
-     * @throws ServiceError If 'id' does not match a stored client or 'client' is not valid.
-     * The user of 'id' and the user of the client must match, too. Otherwise this exception is thrown, too.
+     * @throws ServiceError If the client does not match a stored client or the client is not valid.
+     * The user of the client and the user of the stored client must match, too. Otherwise this exception is thrown, too.
      *
-     * @throws NullPointerException If client or id is null.
+     * @throws NullPointerException If client is null.
      */
-    void updateClient(Client client, ID id) throws ServiceError;
+    void updateClient(Client client) throws ServiceError;
 
     /**
      * Removes a client from the database.

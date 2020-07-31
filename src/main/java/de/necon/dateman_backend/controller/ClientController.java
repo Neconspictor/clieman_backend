@@ -46,6 +46,6 @@ public class ClientController {
     void updateClient(@Valid @RequestBody Client client) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
         client.getId().setUser(user);
-        clientService.updateClient(client, client.getId());
+        clientService.updateClient(client);
     }
 }

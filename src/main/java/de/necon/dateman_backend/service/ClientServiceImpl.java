@@ -10,6 +10,7 @@ import de.necon.dateman_backend.repository.EventRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import de.necon.dateman_backend.util.MessageExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,9 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public void updateClient(Client client, ID id) throws ServiceError {
+    public void updateClient(Client client) throws ServiceError {
+
+        var id = client.getId();
 
         if (id.getUser() != client.getId().getUser()) {
             throw new ServiceError(CLIENT_CHANGING_USER_NOT_ALLOWED);
@@ -69,10 +72,11 @@ public class ClientServiceImpl implements ClientService {
         if (optional.isEmpty()) throw new ServiceError(CLIENT_NOT_FOUND);
 
         try {
-            clientRepository.deleteById(id);
-            addClient(client);
+            clientRepository.saveAndFlush(client);
         } catch(ConstraintViolationException e) {
             throw new ServiceError(MessageExtractor.extract(e));
+        } catch (JpaSystemException e) {
+            throw new ServiceError(List.of(e.getMessage()));
         }
     }
 

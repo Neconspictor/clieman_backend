@@ -253,7 +253,7 @@ public class ClientServiceTest {
         var user = modelFactory.createUser("test@email.com", true, true);
 
         Asserter.assertException(NullPointerException.class).isThrownBy(()->{
-            clientService.updateClient(null, new ID("id", user));
+            clientService.updateClient(null);
         });
     }
 
@@ -262,10 +262,10 @@ public class ClientServiceTest {
         var user = modelFactory.createUser("test@email.com", true, true);
 
         var client = new Client(null, null, null, null,
-                "id", null, Sex.DIVERSE, user);
+                null, null, Sex.DIVERSE, user);
 
-        Asserter.assertException(NullPointerException.class).isThrownBy(()->{
-            clientService.updateClient(client, null);
+        Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            clientService.updateClient(client);
         });
     }
 
@@ -287,13 +287,13 @@ public class ClientServiceTest {
         storedClient = clientRepository.findById(client.getId()).get();
         Assertions.assertNotEquals(client, storedClient);
 
-        clientService.updateClient(client, client.getId());
+        clientService.updateClient(client);
         storedClient = clientRepository.findById(client.getId()).get();
         Assertions.assertEquals(client, storedClient);
     }
 
     @Test
-    public void updateClient_clientWithUpdatedIDIsAllowed() {
+    public void updateClient_clientWithUpdatedIDIsNotAllowed() {
         var user = modelFactory.createUser("test@email.com", true, true);
         var client = modelFactory.createClient("id", user, true).copyShallow();
 
@@ -301,39 +301,11 @@ public class ClientServiceTest {
 
         client.setAddress("new address");
         client.setBirthday(new Date());
-        var id  = client.getId();
         client.setId(new ID("new id", user));
 
-        clientService.updateClient(client, id);
-        var storedClient = clientRepository.findById(client.getId()).get();
-        Assertions.assertEquals(client, storedClient);
-        Assertions.assertTrue(clientRepository.findAll().size() == 1);
-    }
-
-    /**
-     * This test ensures that updateClient fails if the client id is changed, but another client
-     * with the same resulting primary key (id-user combination) already exists.
-     */
-    @Test
-    public void updateClient_updatedIDFailsIfAlreadyExsists() {
-        var user = modelFactory.createUser("test@email.com", true, true);
-        var client = modelFactory.createClient("id", user, true);
-        modelFactory.createClient("another id", user, true);
-
-        //now change the client and assert that the changes will be adopted.
-
-        client.setAddress("new address");
-        client.setBirthday(new Date());
-        var id  = client.getId();
-        client.setId(new ID("another id", user));
-
-
-
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            clientService.updateClient(client, id);
+            clientService.updateClient(client);
         }).source();
-
-        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_ALREADY_EXISTS);
     }
 
     /**
@@ -348,13 +320,10 @@ public class ClientServiceTest {
 
         client.setAddress("new address");
         client.setBirthday(new Date());
-        var id  = client.getId();
         client.setId(new ID("another id", user2));
 
         var serviceError = (ServiceError) Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            clientService.updateClient(client, id);
+            clientService.updateClient(client);
         }).source();
-
-        Asserter.assertContainsError(serviceError.getErrors(), CLIENT_CHANGING_USER_NOT_ALLOWED);
     }
 }
