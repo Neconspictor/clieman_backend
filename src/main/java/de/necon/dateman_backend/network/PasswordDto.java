@@ -1,10 +1,11 @@
 package de.necon.dateman_backend.network;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 public class PasswordDto {
 
-    @NotBlank
+    @NotNull
     private String password;
 
 

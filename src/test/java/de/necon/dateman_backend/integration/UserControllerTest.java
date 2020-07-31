@@ -625,7 +625,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void deleteUser_invalid_passwordBlank() throws Exception {
+    public void deleteUser_invalid_passwordNull() throws Exception {
         var user = modelFactory.createUser("test@email.com", true, false);
         var rawPassword = "password";
         user.setPassword(encoder.encode(rawPassword));
@@ -633,7 +633,7 @@ public class UserControllerTest {
 
         String token = tokenService.createToken(user);
 
-        var response = deleteUser(new PasswordDto(" "), token);
+        var response = deleteUser(new PasswordDto(null), token);
         assertTrue(response.getStatus() == HttpStatus.BAD_REQUEST.value());
 
         var errors = objectMapper.readValue(response.getContentAsString(), ErrorListDto.class);
