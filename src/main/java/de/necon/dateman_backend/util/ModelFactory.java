@@ -77,7 +77,7 @@ public final class ModelFactory {
 
     public Client createClient(String id, User user, boolean store) {
         Client client = new Client(null, null, null, null,
-                id, null, null, user);
+                id, null,null, null, null, user);
         if (store) client = clientRepository.saveAndFlush(client);
         return client;
     }

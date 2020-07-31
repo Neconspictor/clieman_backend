@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.dateman_backend.listeners.ResetDatabaseTestExecutionListener;
 import de.necon.dateman_backend.model.Client;
+import de.necon.dateman_backend.model.Sex;
 import de.necon.dateman_backend.model.User;
 import de.necon.dateman_backend.network.ErrorListDto;
 import de.necon.dateman_backend.repository.ClientRepository;
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.StringWriter;
+import java.util.Date;
 import java.util.List;
 
 import static de.necon.dateman_backend.config.ServiceErrorMessages.*;
@@ -186,8 +188,16 @@ public class ClientControllerTest {
         var client = modelFactory.createClient("client1", user, true);
         var client2 = modelFactory.createClient("client1", user, false);
 
-        //change any field
+        //change all fields (except id, user) so that we can later assert that they have all been updated.
+        client2.setAddress("address");
+        client2.setBirthday(new Date(100));
         client2.setEmail("client@email.com");
+        client2.setForename("forename");
+        client2.setName("name");
+        client2.setMobile("0393423");
+        client2.setSex(Sex.DIVERSE);
+        client2.setTitle("Dr.");
+
 
         var response = updateClient(client2, tokenService.createToken(user));
         assertTrue(response.getStatus() == HttpStatus.OK.value());

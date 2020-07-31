@@ -278,8 +278,7 @@ public class ClientServiceTest {
     public void updateClient_ClientIDNullNotAllowed() {
         var user = modelFactory.createUser("test@email.com", true, true);
 
-        var client = new Client(null, null, null, null,
-                null, null, Sex.DIVERSE, user);
+        var client = modelFactory.createClient(null, user, false);
 
         Asserter.assertException(ServiceError.class).isThrownBy(()->{
             clientService.updateClient(client);

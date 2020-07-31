@@ -43,9 +43,10 @@ public class ClientController {
     }
 
     @PostMapping("/clients/update")
-    void updateClient(@Valid @RequestBody Client client) {
+    Client updateClient(@Valid @RequestBody Client client) {
         var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
         client.getId().setUser(user);
         clientService.updateClient(client);
+        return client;
     }
 }

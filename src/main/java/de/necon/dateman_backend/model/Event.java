@@ -289,6 +289,8 @@ public class Event implements Serializable  {
                     p.readValueAs(String.class),
                     null,
                     null,
+                    null,
+                    null,
                     null);
         }
     }

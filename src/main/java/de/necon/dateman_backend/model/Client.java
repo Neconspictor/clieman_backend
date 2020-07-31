@@ -42,6 +42,12 @@ public class Client implements Serializable  {
     @Enumerated(EnumType.STRING)
     private Sex sex;
 
+    @Basic
+    private String mobile;
+
+    @Basic
+    private String title;
+
     private static final long serialVersionUID = 1L;
 
     public Client() {
@@ -64,23 +70,27 @@ public class Client implements Serializable  {
                   String email,
                   String forename,
                   String id,
+                  String mobile,
                   String name,
                   Sex sex,
+                  String title,
                   User user) {
         this.address = address;
         this.birthday = birthday;
         this.email = email;
         this.forename = forename;
+        this.id = new ID(id, user);
+        this.mobile = mobile;
         this.name = name;
         this.sex = sex;
-        this.id = new ID(id, user);
+        this.title = title;
     }
 
     public Client copyShallow() {
         Date cBirthday = birthday != null ? new Date(birthday.getTime()) : null;
         String idStr = id != null ? id.getId() : null;
         User cUser = id != null ? id.getUser() : null;
-        return new Client(address, cBirthday, email, forename, idStr, name, sex, cUser);
+        return new Client(address, cBirthday, email, forename, idStr, mobile, name, sex, title, cUser);
     }
 
     /**
@@ -132,6 +142,23 @@ public class Client implements Serializable  {
         this.forename = forename;
     }
 
+
+    public ID getId() {
+        return id;
+    }
+
+    public void setId(ID id) {
+        this.id = id;
+    }
+
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+
     /**
      * @return  The family name.
      */
@@ -141,6 +168,24 @@ public class Client implements Serializable  {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+
+    public Sex getSex() {
+        return sex;
+    }
+
+    public void setSex(Sex sex) {
+        this.sex = sex;
+    }
+
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     @JsonIgnore
@@ -173,18 +218,12 @@ public class Client implements Serializable  {
                 ", email='" + email + '\'' +
                 ", forename='" + forename + '\'' +
                 ", id=" + idString +
+                ", mobile='" + mobile + '\'' +
                 ", name='" + name + '\'' +
                 ", sex=" + sex +
+                ", title='" + title + '\'' +
                 ", user=" + userString +
                 '}';
-    }
-
-    public ID getId() {
-        return id;
-    }
-
-    public void setId(ID id) {
-        this.id = id;
     }
 
     @Override

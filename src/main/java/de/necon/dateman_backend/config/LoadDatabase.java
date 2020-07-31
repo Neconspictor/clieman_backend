@@ -39,23 +39,32 @@ public class LoadDatabase {
                 date = group.getDates().get(0);
                 break;
             }
-            var testUser = repository.save(new User("test@email.com", encoder.encode("pass"), "test", true));
+            var testUser = repository.save(new User("test@email.com",
+                    encoder.encode("pass"), "test", true));
             Client client = new Client("test address 1",
                     date,
                     "client@email.com",
                     "forename",
                     "client1",
+                    null,
                     "family name",
                     Sex.DIVERSE,
+                    null,
                     testUser);
 
 
-            log.info("Preloading " + repository.save(new User("pumuckl@muenchen.de", encoder.encode("r3dG0blin"), "Pumuckl", true)));
-            log.info("Preloading " + repository.save(new User("schlomo@testimonial.de", encoder.encode("sleepAbitAndRest"), "Schlomo", true)));
+            log.info("Preloading " + repository.save(new User("pumuckl@muenchen.de",
+                    encoder.encode("r3dG0blin"), "Pumuckl", true)));
+            log.info("Preloading " + repository.save(new User("schlomo@testimonial.de",
+                    encoder.encode("sleepAbitAndRest"), "Schlomo", true)));
             log.info("Preloading " + testUser);
             log.info("Preloading " + clientRepository.save(client));
-            log.info("Preloading " + clientRepository.save(new Client(null, null, null, null, "client2", null, null, repository.findByUsername("Pumuckl").get())));
-            log.info("Preloading " + clientRepository.save(new Client("address of client 3", new Date(), "client3@email.com", "forename of client 3", "client2", "name of client 3", Sex.MALE, testUser)));
+            log.info("Preloading " + clientRepository.save(new Client(null, null, null, null,
+                    "client2",null,
+                    null, null, null, repository.findByUsername("Pumuckl").get())));
+            log.info("Preloading " + clientRepository.save(new Client("address of client 3", new Date(),
+                    "client3@email.com", "forename of client 3", "client2", null,
+                    "name of client 3", Sex.MALE, null, testUser)));
 
         };
     }
