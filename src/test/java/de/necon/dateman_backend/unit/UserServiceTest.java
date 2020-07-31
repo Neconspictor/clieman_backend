@@ -400,42 +400,6 @@ public class UserServiceTest {
         Asserter.assertContainsError(serviceError.getErrors(), TOKEN_IS_NOT_VALID);
     }
 
-
-    @Transactional
-    @Test
-    public void deleteUser_DeleteFailsWithLinkedToken() throws ServiceError {
-
-        var user = new User("test2@demail.de", "password", "username", false);
-        userRepository.saveAndFlush(user);
-        userService.createVerificationToken(user, "01234");
-
-        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.deleteUser(user);
-        }).source();
-
-        Asserter.assertContainsError(serviceError.getErrors(), USER_IS_LINKED_TO_ENTITIES);
-    }
-
-    @Test
-    public void deleteUser_ValidUser() throws ServiceError {
-
-        var user = new User("test2@demail.de", "password", "username", false);
-        userRepository.saveAndFlush(user);
-        userService.deleteUser(user);
-    }
-
-    @Test
-    public void deleteUser_InvalidUser() throws ServiceError {
-
-        var user = new User("test2@demail.de", "password", "username", false);
-
-        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
-            userService.deleteUser(user);
-        }).source();
-
-        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
-    }
-
     @Test
     public void verifyUserAccount_verificationWorks() throws ServiceError {
 
@@ -725,6 +689,26 @@ public class UserServiceTest {
         //check that the username is changed indead
         user = userRepository.findById(user.getId()).get();
         assertEquals("test2", user.getUsername());
+    }
+
+    @Test
+    public void deleteUser_ValidUser() throws ServiceError {
+
+        var user = new User("test2@demail.de", "password", "username", false);
+        userRepository.saveAndFlush(user);
+        userService.deleteUser(user);
+    }
+
+    @Test
+    public void deleteUser_InvalidUser() throws ServiceError {
+
+        var user = new User("test2@demail.de", "password", "username", false);
+
+        var serviceError = (ServiceError)Asserter.assertException(ServiceError.class).isThrownBy(()->{
+            userService.deleteUser(user);
+        }).source();
+
+        Asserter.assertContainsError(serviceError.getErrors(), USER_NOT_FOUND);
     }
 
     @Test
