@@ -3,3 +3,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+ 
+---
+
+spring:
+  profiles: production
+  jpa:
+    hibernate:
+      ddl-auto: update      
