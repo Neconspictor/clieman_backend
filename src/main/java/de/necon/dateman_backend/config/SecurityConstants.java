@@ -9,7 +9,7 @@ import javax.annotation.PostConstruct;
 
 @Configuration
 public class SecurityConstants {
-    public static final String SECRET_ENV_VARIABLE = "dateman.DATEMAN_BACKEND_JWT_SECRET";
+    public static final String SECRET_ENV_VARIABLE = "clieman.JWT_SECRET";
     private static String secret;
 
     @Autowired

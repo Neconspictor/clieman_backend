@@ -33,8 +33,9 @@ spring:
     password:
 
 
-dateman:
+clieman:
   test:
+    enabled: true
     no-override: true
 
 

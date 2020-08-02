@@ -1,1 +1,1 @@
-web: java -jar build/libs/dateman_backend-0.0.1-SNAPSHOT.jar
+web: java -jar build/libs/clieman_backend-0.0.1-SNAPSHOT.jar

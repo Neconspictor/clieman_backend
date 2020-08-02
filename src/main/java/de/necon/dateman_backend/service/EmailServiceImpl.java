@@ -28,8 +28,11 @@ public class EmailServiceImpl implements EmailService {
     @PostConstruct
     public void init() {
         //send a test email for testing that everything is setup
-        logger.info("testing email sending...");
-        sendSimpleMessage(env.getProperty(EMAIL_ADDRESS_PROPERTY), "init test", "");
+
+        if (!isTestEnvironment()) {
+            logger.info("testing email sending...");
+            sendSimpleMessage(env.getProperty(EMAIL_ADDRESS_PROPERTY), "init test", "");
+        }
     }
 
     @Override
@@ -61,13 +64,20 @@ public class EmailServiceImpl implements EmailService {
 
     private String preprocessEmail(String email) {
         // if we have test environment we use a test email instead
-
-        String testEmail = env.getProperty("dateman.test.email");
-        Boolean noOverride = BooleanUtils.toBoolean(env.getProperty("dateman.test.no-override"));
-        if (testEmail != null && !noOverride) {
-            return testEmail;
+        if (redirectRequest()) {
+            return env.getProperty("clieman.test.email");
         }
 
         return email;
+    }
+
+    private boolean redirectRequest() {
+        String testEmail = env.getProperty("clieman.test.email");
+        Boolean noOverride = BooleanUtils.toBoolean(env.getProperty("clieman.test.no-override"));
+        return (testEmail != null && !noOverride);
+    }
+
+    private boolean isTestEnvironment() {
+        return BooleanUtils.toBoolean(env.getProperty("clieman.test.enabled"));
     }
 }

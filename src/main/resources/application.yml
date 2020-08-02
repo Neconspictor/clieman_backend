@@ -9,9 +9,9 @@ logging:
 
 spring:
   datasource:
-    url: ${dateman.JDBC_DATABASE_URL}
-    username: ${dateman.JDBC_DATABASE_USERNAME}
-    password: ${dateman.JDBC_DATABASE_PASSWORD}
+    url: ${clieman.JDBC_DATABASE_URL}
+    username: ${clieman.JDBC_DATABASE_USERNAME}
+    password: ${clieman.JDBC_DATABASE_PASSWORD}
 
   jpa:
     hibernate:
@@ -31,8 +31,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${dateman.DATEMAN_GMAIL_USERNAME}
-    password: ${dateman.DATEMAN_GMAIL_PASSWORD}
+    username: ${clieman.EMAIL_USERNAME}
+    password: ${clieman.EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -43,14 +43,6 @@ spring:
             enable: true
 
 server:
-
-  ssl:
-    enabled: false
-    key-store: classpath:dateman_backend_keystore.p12
-    key-store-password: ${dateman.DATEMAN_KEYSTORE_PASSWORD}
-    key-store-type: pkcs12
-    key-alias: dateman-key
-    key-password: ${dateman.DATEMAN_KEYSTORE_PASSWORD}
 
   port : ${PORT:8443}
   #http-redirect-port: 8081
