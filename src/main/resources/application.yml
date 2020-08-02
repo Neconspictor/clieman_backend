@@ -13,10 +13,6 @@ spring:
     username: ${clieman.JDBC_DATABASE_USERNAME}
     password: ${clieman.JDBC_DATABASE_PASSWORD}
 
-  jpa:
-    hibernate:
-      ddl-auto: create
-
     # default connection pool
     hikari:
       connectionTimeout: 20000
@@ -46,4 +42,3 @@ server:
 
   port : ${PORT:8443}
   #http-redirect-port: 8081
-

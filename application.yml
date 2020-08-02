@@ -1,0 +1,5 @@
+spring:
+  profiles: development
+  jpa:
+    hibernate:
+      ddl-auto: create

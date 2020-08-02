@@ -9,6 +9,7 @@ import de.necon.dateman_backend.repository.ClientRepository;
 import de.necon.dateman_backend.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 @Component
-public class TestDatabaseInitializer implements CommandLineRunner{
+public class TestDatabaseInitializer implements InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(TestDatabaseInitializer.class);
 
     @Autowired
@@ -33,8 +34,15 @@ public class TestDatabaseInitializer implements CommandLineRunner{
     @Autowired
     private ClientRepository clientRepository;
 
+
     @Override
-    public void run(String... args) throws Exception {
+    public void afterPropertiesSet() throws Exception {
+        //we only want a test initialization if we are not on production mode
+        String mode = env.getProperty("spring.profiles.active");
+        log.info("mode = " + mode);
+        if (mode == null || !mode.equals("development")) return;
+        log.info("mode passed");
+
         Parser parser = new Parser();
         var groups = parser.parse("01/01/1960 00:00:00 Z");
         Date date = null;

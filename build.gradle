@@ -40,3 +40,7 @@ dependencies {
 test {
 	useJUnitPlatform()
 }
+
+bootRun {
+	bootRun.systemProperty 'spring.profiles.active', "${springProfile}"
+}
