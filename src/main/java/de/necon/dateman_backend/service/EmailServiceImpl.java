@@ -2,22 +2,35 @@ package de.necon.dateman_backend.service;
 
 import de.necon.dateman_backend.model.VerificationToken;
 import org.apache.commons.lang3.BooleanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+
 @Service
 public class EmailServiceImpl implements EmailService {
+
+    private static String FROM = "noreply@dateman.com";
+    private static final String EMAIL_ADDRESS_PROPERTY = "spring.mail.username";
+    private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     @Autowired
     private JavaMailSender emailSender;
 
     @Autowired
-    Environment env;
+    private Environment env;
 
-    private static String FROM = "noreply@dateman.com";
+    @PostConstruct
+    public void init() {
+        //send a test email for testing that everything is setup
+        logger.info("testing email sending...");
+        sendSimpleMessage(env.getProperty(EMAIL_ADDRESS_PROPERTY), "init test", "");
+    }
 
     @Override
     public void sendSimpleMessage(String to, String subject, String text) {
