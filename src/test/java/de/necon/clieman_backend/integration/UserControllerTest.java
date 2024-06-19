@@ -33,7 +33,6 @@ import static de.necon.clieman_backend.config.ServiceErrorMessages.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-@ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class UserControllerTest {
@@ -304,7 +303,7 @@ public class UserControllerTest {
                 findAll().
                 get(0);
 
-        token.setExpiryDate(new Date());
+        token.setExpiryDate(new Date(0));
         tokenRepository.saveAndFlush(token);
 
         //check that user confirmation doesn't work
