@@ -37,3 +37,4 @@ out/
 ### Local environement ###
 .env
 application-local.yml
+application-local-docker.yml

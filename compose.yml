@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:10.5
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=6FbPzHjUS74mQSaoTmcS
+      - POSTGRES_USER=dateman_app
+      - POSTGRES_DB=dateman
+  main:
+    build:
+      context: ./
+    depends_on:
+      - db
+    develop:
+      watch:
+        - path: ./src
+          action: sync+restart
+          target: /app/src
+        - path: ./application-local-docker.yml
+          action: rebuild
