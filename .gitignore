@@ -35,4 +35,4 @@ out/
 
 
 ### Local environement ###
-application-local.yml
+application-local-production.yml

@@ -42,5 +42,6 @@ test {
 }
 
 bootRun {
-	bootRun.systemProperty 'spring.profiles.active', "${springProfile}"
+    //jvmArgs(['-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000'])
+    //bootRun.systemProperty 'spring.profiles.active', "${springProfile}"
 }

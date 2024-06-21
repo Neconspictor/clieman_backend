@@ -4,4 +4,6 @@ COPY gradle ./gradle
 COPY gradle.properties gradlew settings.gradle system.properties build.gradle application.yml Procfile ./
 COPY application-local-docker.yml ./application-local.yml
 COPY src ./src
-CMD ["./gradlew", "bootRun"]
+RUN echo "bootRun {jvmArgs(['-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000'])}" >> build.gradle
+CMD ./gradlew bootRun
+EXPOSE 8005
