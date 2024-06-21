@@ -35,5 +35,4 @@ out/
 
 
 ### Local environement ###
-.env
 application-local.yml

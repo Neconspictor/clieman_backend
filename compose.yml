@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:10.5
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=
+      - POSTGRES_USER=dateman_app
+      - POSTGRES_DB=dateman
+
+  mailcatcher:
+    restart: on-failure
+    image: haravich/fake-smtp-server
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+
+  main:
+    build:
+      context: ./
+    depends_on:
+      - db
+      - mailcatcher
+    develop:
+      watch:
+        - path: ./src
+          action: sync+restart
+          target: /app/src
+        - path: ./application-local-docker.yml
+          action: rebuild
