@@ -1,0 +1,9 @@
+clieman:
+  JDBC_DATABASE_URL: jdbc:postgresql://db:5432/dateman
+  JDBC_DATABASE_USERNAME: dateman_app
+  JDBC_DATABASE_PASSWORD:
+  EMAIL_HOST: mailcatcher
+  EMAIL_PORT: 1025
+  EMAIL_USERNAME: clieman.app@gmail.com
+  EMAIL_PASSWORD:
+  JWT_SECRET: My secret

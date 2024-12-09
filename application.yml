@@ -10,4 +10,6 @@ spring:
   profiles: production
   jpa:
     hibernate:
-      ddl-auto: update      
+      ddl-auto: update
+
+

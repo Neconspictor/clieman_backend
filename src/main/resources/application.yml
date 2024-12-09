@@ -25,8 +25,8 @@ spring:
 
 
   mail:
-    host: smtp.gmail.com
-    port: 587
+    host: ${clieman.EMAIL_HOST}
+    port: ${clieman.EMAIL_PORT}
     username: ${clieman.EMAIL_USERNAME}
     password: ${clieman.EMAIL_PASSWORD}
     properties:
@@ -34,7 +34,7 @@ spring:
         smtp:
           auth: true
           ssl:
-            trust: smtp.gmail.com
+            trust: ${clieman.EMAIL_HOST}
           starttls:
             enable: true
 
