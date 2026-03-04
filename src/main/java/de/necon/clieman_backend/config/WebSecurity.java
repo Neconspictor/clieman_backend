@@ -101,7 +101,9 @@ public class WebSecurity {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
+        CorsConfiguration configuration = new CorsConfiguration();
+        String allowedOrigin = env.getProperty("app.cors.allowed-origin", "http://localhost:8080");
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigin));
         configuration.setAllowCredentials(true);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("X-Requested-With","Origin","Content-Type","Accept","Authorization"));
