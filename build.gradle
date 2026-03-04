@@ -1,12 +1,12 @@
 plugins {
-	id 'org.springframework.boot' version '2.3.1.RELEASE'
-	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+	id 'org.springframework.boot' version '3.3.4'
+	id 'io.spring.dependency-management' version '1.1.6'
 	id 'java'
 }
 
 group = 'de.necon'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '14(Preview)'
+sourceCompatibility = '21'
 
 repositories {
 	mavenCentral()
@@ -15,18 +15,17 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.hibernate.validator:hibernate-validator:6.1.5.Final'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.security:spring-security-core'
-	implementation 'org.springframework.boot:spring-boot-starter-mail:2.2.5.RELEASE'
-	implementation 'com.auth0:java-jwt:3.10.3'
-	implementation 'org.apache.commons:commons-text:1.8'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'com.auth0:java-jwt:4.4.0'
+	implementation 'org.apache.commons:commons-text:1.12.0'
 	implementation 'com.joestelmach:natty:0.13'
 	implementation 'org.javatuples:javatuples:1.2'
 
 
-	runtimeOnly 'com.h2database:h2:1.4.200'
+	runtimeOnly 'com.h2database:h2:2.2.224'
 	runtimeOnly 'org.postgresql:postgresql'
 
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
@@ -34,7 +33,7 @@ dependencies {
 	}
 	testImplementation 'org.springframework.security:spring-security-test'
 
-	testImplementation 'com.icegreen:greenmail-spring:1.5.14'
+	testImplementation 'com.icegreen:greenmail-spring:2.1.0'
 }
 
 test {

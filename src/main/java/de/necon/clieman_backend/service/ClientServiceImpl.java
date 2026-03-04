@@ -12,7 +12,7 @@ import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 
 import static de.necon.clieman_backend.config.ServiceErrorMessages.*;

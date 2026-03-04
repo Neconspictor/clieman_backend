@@ -35,7 +35,7 @@ public class JWTTokenService {
         return JWT.create()
                 .withSubject(user.getEmail())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .sign(HMAC512(secret.getBytes()));
+                .sign(HMAC512(secret));
     }
 
     public static Pair<String, String> createTokenHeader(String token) {
@@ -47,7 +47,7 @@ public class JWTTokenService {
         String email = null;
 
         try {
-            email = JWT.require(Algorithm.HMAC512(secret.getBytes()))
+            email = JWT.require(Algorithm.HMAC512(secret))
                     .build()
                     .verify(token.replace(TOKEN_PREFIX, ""))
                     .getSubject();

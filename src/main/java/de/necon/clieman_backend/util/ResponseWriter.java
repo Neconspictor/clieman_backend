@@ -3,7 +3,7 @@ package de.necon.clieman_backend.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.necon.clieman_backend.network.ErrorListDto;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 

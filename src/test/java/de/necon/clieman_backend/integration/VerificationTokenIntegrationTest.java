@@ -24,7 +24,7 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import java.io.IOException;
 

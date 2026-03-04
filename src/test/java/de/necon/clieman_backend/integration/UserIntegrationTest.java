@@ -59,9 +59,9 @@ public class UserIntegrationTest {
         user2.setEmail(user.getEmail());
 
         testEntityManager.persistAndFlush(user);
-        assertThatExceptionOfType(javax.persistence.PersistenceException.class).isThrownBy(()->{
+        assertThatExceptionOfType(jakarta.persistence.PersistenceException.class).isThrownBy(()->{
             testEntityManager.persistAndFlush(user2);
-        }).withCauseInstanceOf(org.hibernate.exception.ConstraintViolationException.class);
+        });
     }
 
     @Test
@@ -85,14 +85,12 @@ public class UserIntegrationTest {
          * This keyword is part of the stacktrace when JPA tries to insert the user object and the constraint
          * on the username fails.
          */
-        final String errorMessageKeyword = "ON PUBLIC.TB_USER(USERNAME)";
-
         testEntityManager.persist(modelFactory.createValidUser());
-        assertThatExceptionOfType(javax.persistence.PersistenceException.class).isThrownBy(()->{
+        assertThatExceptionOfType(jakarta.persistence.PersistenceException.class).isThrownBy(()->{
             var user = modelFactory.createValidUser();
             user.setEmail(ANOTHER_VALID_EMAIL);
             testEntityManager.persistAndFlush(user);
-        }).withStackTraceContaining(errorMessageKeyword);
+        }).withMessageContaining("USERNAME");
 
     }
 

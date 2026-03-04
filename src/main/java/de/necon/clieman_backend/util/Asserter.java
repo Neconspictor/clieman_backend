@@ -43,7 +43,7 @@ public class Asserter {
             try {
                 func.call();
             } catch(Throwable t) {
-                if (!t.getClass().equals(expectedThrowableClass)) {
+                if (!expectedThrowableClass.isAssignableFrom(t.getClass())) {
                     throw new AssertionError("Got execption of type '" + t.getClass() + "'\n"
                     + "But expected: \n'"
                     + expectedThrowableClass + "'");

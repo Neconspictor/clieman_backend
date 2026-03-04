@@ -13,8 +13,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -27,7 +27,7 @@ public class ID implements Serializable {
     private String id;
 
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(targetEntity = User.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(nullable = false, name = "USER_ID_EMBEDDED")
     @JsonIgnore
     private User user;

@@ -5,7 +5,7 @@ import de.necon.clieman_backend.model.Client;
 import de.necon.clieman_backend.model.User;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 
 public interface ClientService {
