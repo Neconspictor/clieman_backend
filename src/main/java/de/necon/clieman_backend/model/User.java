@@ -7,8 +7,8 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
 
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.util.Objects;
 
 import static de.necon.clieman_backend.config.ServiceErrorMessages.*;

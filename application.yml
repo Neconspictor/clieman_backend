@@ -1,13 +1,17 @@
 spring:
-  profiles: development
+  config:
+    activate:
+      on-profile: development
   jpa:
     hibernate:
       ddl-auto: create
- 
+
 ---
 
 spring:
-  profiles: production
+  config:
+    activate:
+      on-profile: production
   jpa:
     hibernate:
-      ddl-auto: update      
+      ddl-auto: update

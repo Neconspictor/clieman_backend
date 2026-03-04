@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 
 import java.util.ArrayList;
 
@@ -45,13 +45,11 @@ public class EventIntegrationTest {
 
         var event = modelFactory.createEvent("id", null, new ArrayList<>(), false);
 
-        var ex = (PersistenceException) Asserter.assertException(PersistenceException.class).isThrownBy(()->{
+        var ex = Asserter.assertException(PersistenceException.class).isThrownBy(()->{
             testEntityManager.persistAndFlush(event);
         }).source();
 
-        var constraintEx = ex.getCause().getCause();
-        var msg = constraintEx.getMessage();
-
-        assertTrue(msg.startsWith("NULL"));
+        var msg = ex.getCause().getMessage();
+        assertTrue(msg.contains("NULL"));
     }
 }

@@ -6,9 +6,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Validation;
-import javax.validation.ValidationException;
-import javax.validation.Validator;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidationException;
+import jakarta.validation.Validator;
 
 import static de.necon.clieman_backend.config.ServiceErrorMessages.MALFORMED_DATA;
 

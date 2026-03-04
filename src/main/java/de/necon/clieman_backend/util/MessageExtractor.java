@@ -2,7 +2,7 @@ package de.necon.clieman_backend.util;
 
 import org.springframework.dao.DataIntegrityViolationException;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.stream.Collectors;
 

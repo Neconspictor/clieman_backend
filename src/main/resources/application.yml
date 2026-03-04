@@ -19,10 +19,6 @@ spring:
       maximumPoolSize: 5
       poolName: HikariPoolZZZ
 
-      security:
-        basic:
-          enabled: false
-
 
   mail:
     host: smtp.gmail.com

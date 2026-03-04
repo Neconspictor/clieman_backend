@@ -1,6 +1,6 @@
 package de.necon.clieman_backend.network;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class PasswordDto {
 

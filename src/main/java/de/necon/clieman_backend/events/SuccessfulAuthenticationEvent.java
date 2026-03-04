@@ -3,7 +3,7 @@ package de.necon.clieman_backend.events;
 import de.necon.clieman_backend.model.User;
 import org.springframework.context.ApplicationEvent;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class SuccessfulAuthenticationEvent extends ApplicationEvent {
 

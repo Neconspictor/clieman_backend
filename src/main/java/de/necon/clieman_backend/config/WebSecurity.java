@@ -12,13 +12,14 @@ import de.necon.clieman_backend.util.ResponseWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -28,7 +29,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-public class WebSecurity extends WebSecurityConfigurerAdapter {
+public class WebSecurity {
 
     private final MyBasicAuthenticationEntryPoint authenticationEntryPoint;
 
@@ -58,9 +59,13 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
         this.env = env;
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 
     @Bean
-    public JWTAuthenticationFilter authenticationFilter() throws Exception {
+    public JWTAuthenticationFilter authenticationFilter(AuthenticationManager authenticationManager) {
         JWTAuthenticationFilter authenticationFilter
                 = new JWTAuthenticationFilter(objectMapper,
                 userRepository,
@@ -69,47 +74,37 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
                 jwtTokenService());
 
         authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/public/login", "POST"));
-        authenticationFilter.setAuthenticationManager(authenticationManagerBean());
+        authenticationFilter.setAuthenticationManager(authenticationManager);
         authenticationFilter.setFilterProcessesUrl("/public/login");
         return authenticationFilter;
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
 
-        http.cors().and().csrf().disable().authorizeRequests()
-                .antMatchers("/public/**").permitAll()
-                .anyRequest().authenticated()
-
-                .and()
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/public/**").permitAll()
+                        .anyRequest().authenticated()
+                )
                 .addFilterBefore(
-                        authenticationFilter(), JWTAuthenticationFilter.class)
-                .addFilter(new JWTAuthorizationFilter(authenticationManager(), userRepository, jwtTokenService()))
+                        authenticationFilter(authenticationManager), JWTAuthenticationFilter.class)
+                .addFilter(new JWTAuthorizationFilter(authenticationManager, userRepository, jwtTokenService()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint));
 
-                // this disables session creation on Spring Security
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint);
-
-                //.and()
-                //.requiresChannel()
-                //.anyRequest()
-                //.requiresSecure();
-    }
-
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+        return http.build();
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
+        CorsConfiguration configuration = new CorsConfiguration();
+        String allowedOrigin = env.getProperty("app.cors.allowed-origin", "http://localhost:8080");
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigin));
         configuration.setAllowCredentials(true);
-        //configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("X-Requested-With","Origin","Content-Type","Accept","Authorization"));
 

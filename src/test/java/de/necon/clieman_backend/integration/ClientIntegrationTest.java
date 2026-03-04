@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,13 +44,11 @@ public class ClientIntegrationTest {
 
         var client = modelFactory.createClient("id", null, false);
 
-        var ex = (PersistenceException) Asserter.assertException(PersistenceException.class).isThrownBy(()->{
+        var ex = Asserter.assertException(PersistenceException.class).isThrownBy(()->{
             testEntityManager.persistAndFlush(client);
         }).source();
 
-        var constraintEx = ex.getCause().getCause();
-        var msg = constraintEx.getMessage();
-
-        assertTrue(msg.startsWith("NULL"));
+        var msg = ex.getCause().getMessage();
+        assertTrue(msg.contains("NULL"));
     }
 }

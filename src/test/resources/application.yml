@@ -26,14 +26,14 @@ spring:
 
 
   datasource:
-    platform: h2
-    url: jdbc:h2:mem:test
+    url: jdbc:h2:mem:test;NON_KEYWORDS=USER
     driver-class-name: org.h2.Driver
     username: sa
     password:
 
 
 clieman:
+  JWT_SECRET: test-secret-key-for-testing-only
   test:
     enabled: true
     no-override: true

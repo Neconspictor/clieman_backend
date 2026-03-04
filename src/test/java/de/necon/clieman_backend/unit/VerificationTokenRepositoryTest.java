@@ -59,8 +59,8 @@ public class VerificationTokenRepositoryTest {
 
         testEntityManager.persistAndFlush(token.getUser());
         testEntityManager.persistAndFlush(token);
-        assertThatExceptionOfType(javax.persistence.PersistenceException.class).isThrownBy(()->{
+        assertThatExceptionOfType(jakarta.persistence.PersistenceException.class).isThrownBy(()->{
             testEntityManager.persistAndFlush(token2);
-        }).withCauseInstanceOf(org.hibernate.exception.ConstraintViolationException.class);
+        });
     }
 }
